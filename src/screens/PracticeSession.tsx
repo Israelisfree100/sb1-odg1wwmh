@@ -23,6 +23,8 @@ import {
 
 interface PracticeSessionProps {
   mode: PracticeMode;
+  /** Exam subject — if provided and not 'חשבון', shows a coming-soon screen. */
+  subject?: string;
   onBack: () => void;
 }
 
@@ -133,7 +135,8 @@ function PageShell({
 
 // ─── main component ────────────────────────────────────────────────────────────
 
-export function PracticeSession({ mode, onBack }: PracticeSessionProps) {
+export function PracticeSession({ mode, subject, onBack }: PracticeSessionProps) {
+  // All hooks must be called unconditionally before any early returns.
   const [phase, setPhase] = useState<Phase>(
     mode === 'by-topic' ? 'topic-select' : 'quiz',
   );
@@ -149,6 +152,49 @@ export function PracticeSession({ mode, onBack }: PracticeSessionProps) {
 
   const totalQuestions = questions.length;
   const currentQuestion = questions[currentIndex];
+
+  // Non-math subject → coming-soon screen (after all hooks)
+  if (subject && subject !== 'חשבון') {
+    return (
+      <PageShell
+        headerLeft={
+          <button
+            type="button"
+            onClick={onBack}
+            className="flex items-center gap-1.5 text-gray-500 hover:text-gray-800 transition-colors font-medium text-sm rounded-lg px-2 py-1 hover:bg-gray-100"
+          >
+            <ChevronRight className="w-5 h-5" />
+            חזרה
+          </button>
+        }
+        headerCenter={`תרגול ${subject}`}
+      >
+        <div className="flex flex-col items-center text-center py-12 space-y-5">
+          <div className="w-20 h-20 rounded-2xl bg-violet-100 flex items-center justify-center">
+            <span className="text-4xl">📚</span>
+          </div>
+          <div>
+            <h2 className="text-xl font-extrabold text-gray-800">
+              תרגול {subject}
+            </h2>
+            <p className="text-gray-500 mt-2 text-sm max-w-xs leading-relaxed">
+              תרגול למקצוע הזה יתווסף בקרוב.
+              <br />
+              בינתיים תוכלי לתרגל חשבון!
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onBack}
+            className="flex items-center gap-2 bg-violet-500 hover:bg-violet-600 text-white font-bold px-6 py-3 rounded-xl transition-colors shadow-sm"
+          >
+            <ChevronRight className="w-4 h-4" />
+            חזרה לעוזר למבחנים
+          </button>
+        </div>
+      </PageShell>
+    );
+  }
 
   // ── topic select ─────────────────────────────────────────────────────────────
 
