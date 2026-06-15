@@ -6,6 +6,9 @@ import { PracticeSession } from './screens/PracticeSession';
 import { PlaceholderScreen } from './screens/PlaceholderScreen';
 import { LoginScreen } from './screens/LoginScreen';
 import { AnnouncementsScreen } from './screens/AnnouncementsScreen';
+import { DailyScheduleScreen } from './screens/DailyScheduleScreen';
+import { AssignmentsScreen } from './screens/AssignmentsScreen';
+import { ClassMessagesScreen } from './screens/ClassMessagesScreen';
 import { loadSessionUser, clearSession } from './utils/auth';
 import type { AppScreen, PracticeMode, User } from './types';
 
@@ -46,6 +49,33 @@ function App() {
         <Dashboard
           activeUser={activeUser}
           onNavigate={navigate}
+          onLogout={handleLogout}
+        />
+      );
+
+    case 'daily-schedule':
+      return (
+        <DailyScheduleScreen
+          activeUser={activeUser}
+          onBack={goHome}
+          onLogout={handleLogout}
+        />
+      );
+
+    case 'assignments':
+      return (
+        <AssignmentsScreen
+          activeUser={activeUser}
+          onBack={goHome}
+          onLogout={handleLogout}
+        />
+      );
+
+    case 'class-messages':
+      return (
+        <ClassMessagesScreen
+          activeUser={activeUser}
+          onBack={goHome}
           onLogout={handleLogout}
         />
       );

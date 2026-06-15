@@ -14,11 +14,12 @@ export function login(
   username: string,
   password: string,
 ): User | null {
+  const normalizedUsername = username.trim().toLowerCase();
   return (
     USERS.find(
       (u) =>
         u.schoolId === schoolId &&
-        u.username === username.trim() &&
+        u.username.toLowerCase() === normalizedUsername &&
         u.password === password,
     ) ?? null
   );

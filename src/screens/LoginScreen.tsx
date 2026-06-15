@@ -115,9 +115,11 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
                   setUsername(e.target.value);
                   clearError();
                 }}
-                placeholder="הזיני את שם המשתמש שלך"
+                placeholder="הזן את שם המשתמש שלך"
                 autoComplete="username"
                 autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
                 className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 text-gray-800 placeholder:text-gray-400"
               />
             </div>
@@ -139,8 +141,10 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
                     setPassword(e.target.value);
                     clearError();
                   }}
-                  placeholder="הזיני את הסיסמה שלך"
+                  placeholder="הזן את הסיסמה שלך"
                   autoComplete="current-password"
+                  autoCorrect="off"
+                  spellCheck={false}
                   className="w-full border border-gray-200 rounded-xl px-4 py-3 pl-11 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 text-gray-800 placeholder:text-gray-400"
                 />
                 <button
@@ -183,6 +187,35 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
         <p className="text-center text-xs text-gray-400 mt-5">
           בעיה בכניסה? פנה/י למורה או למנהל בית הספר
         </p>
+
+        {/* Demo credentials — development only */}
+        {import.meta.env.DEV && (
+          <div className="mt-5 bg-amber-50 border border-amber-200 rounded-2xl p-4 text-sm" dir="rtl">
+            <p className="font-bold text-amber-800 mb-2 flex items-center gap-1.5">
+              <span>🔑</span> פרטי כניסה לדוגמה
+            </p>
+            <div className="space-y-1.5 text-amber-700">
+              <div className="flex items-center justify-between gap-4">
+                <span className="font-semibold">בית ספר השקד</span>
+                <code className="bg-amber-100 rounded-lg px-2 py-0.5 text-xs font-mono">
+                  alma / 1234
+                </code>
+              </div>
+              <div className="flex items-center justify-between gap-4">
+                <span className="font-semibold">בית ספר השקד</span>
+                <code className="bg-amber-100 rounded-lg px-2 py-0.5 text-xs font-mono">
+                  noam / 1234
+                </code>
+              </div>
+              <div className="flex items-center justify-between gap-4">
+                <span className="font-semibold">בית ספר הרקפות</span>
+                <code className="bg-amber-100 rounded-lg px-2 py-0.5 text-xs font-mono">
+                  maya / 1234
+                </code>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

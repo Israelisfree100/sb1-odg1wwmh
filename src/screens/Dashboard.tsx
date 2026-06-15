@@ -26,6 +26,8 @@ import {
   getNextExam,
   getRelevantAnnouncements,
   getLostFoundItems,
+  getClassMessages,
+  getReadMessageIds,
 } from '../utils/dataHelpers';
 
 interface DashboardProps {
@@ -34,68 +36,12 @@ interface DashboardProps {
   onLogout: () => void;
 }
 
-const NAV_CARD_DATA = [
-  {
-    id: 'schedule',
-    title: 'היום שלי',
-    description: 'מה יש לך היום בלוח הזמנים',
-    icon: <CalendarDays className="w-6 h-6 text-sky-600" />,
-    iconBg: 'bg-sky-100',
-    cardBg: 'bg-sky-50',
-    borderColor: 'border-sky-100',
-  },
-  {
-    id: 'tasks',
-    title: 'המשימות שלי',
-    description: 'בדקי מה צריך לסיים',
-    icon: <ClipboardCheck className="w-6 h-6 text-emerald-600" />,
-    iconBg: 'bg-emerald-100',
-    cardBg: 'bg-emerald-50',
-    borderColor: 'border-emerald-100',
-  },
-  {
-    id: 'messages',
-    title: 'הודעות הכיתה',
-    description: 'הודעות מהמורה ומהכיתה',
-    icon: <MessageSquare className="w-6 h-6 text-violet-600" />,
-    iconBg: 'bg-violet-100',
-    cardBg: 'bg-violet-50',
-    borderColor: 'border-violet-100',
-  },
-  {
-    id: 'lost-found',
-    title: 'אבדות ומציאות',
-    description: 'מצאת משהו? איבדת משהו?',
-    icon: <Search className="w-6 h-6 text-amber-600" />,
-    iconBg: 'bg-amber-100',
-    cardBg: 'bg-amber-50',
-    borderColor: 'border-amber-100',
-  },
-  {
-    id: 'smart-helper',
-    title: 'העוזר החכם',
-    description: 'שאלי אותי כל שאלה שתרצי',
-    icon: <Sparkles className="w-6 h-6 text-rose-600" />,
-    iconBg: 'bg-rose-100',
-    cardBg: 'bg-rose-50',
-    borderColor: 'border-rose-100',
-  },
-];
-
-const CARD_TITLES: Record<string, string> = {
-  schedule: 'היום שלי',
-  tasks: 'המשימות שלי',
-  messages: 'הודעות הכיתה',
-  'lost-found': 'אבדות ומציאות',
-  'smart-helper': 'העוזר החכם',
-};
-
 export function Dashboard({ activeUser, onNavigate, onLogout }: DashboardProps) {
   const school = getSchool(activeUser.schoolId);
   const cls = activeUser.classId ? getClass(activeUser.classId) : undefined;
   const initials = getInitials(activeUser.fullName);
 
-  // Dynamic summary data
+  // ── Assignments summary ────────────────────────────────────────────────────
   const allAssignments = activeUser.classId
     ? getAssignments(activeUser.classId)
     : [];
@@ -104,19 +50,33 @@ export function Dashboard({ activeUser, onNavigate, onLogout }: DashboardProps) 
     (a) => !completedIds.includes(a.id),
   ).length;
 
+  // ── Exam ──────────────────────────────────────────────────────────────────
   const nextExam = activeUser.classId
     ? getNextExam(activeUser.classId)
     : undefined;
 
+  // ── Announcements (notice board) ──────────────────────────────────────────
   const announcements = getRelevantAnnouncements(activeUser);
-  const latestClassAnn = announcements.find((a) => a.audience === 'class');
 
+  // ── Class messages ────────────────────────────────────────────────────────
+  const classMessages = activeUser.classId
+    ? getClassMessages(activeUser.classId)
+    : [];
+  const readMessageIds = getReadMessageIds(activeUser.id);
+  const unreadCount = classMessages.filter(
+    (m) => !readMessageIds.includes(m.id),
+  ).length;
+  const latestMessage =
+    classMessages.find((m) => !readMessageIds.includes(m.id)) ??
+    classMessages[0];
+
+  // ── Lost & found ──────────────────────────────────────────────────────────
   const lostFoundItems = getLostFoundItems(activeUser.schoolId);
   const latestFound = lostFoundItems.find(
     (i) => i.type === 'found' && i.status === 'open',
   );
 
-  // Reminder: prioritise exam, then high-priority assignment
+  // ── Reminder ──────────────────────────────────────────────────────────────
   let reminderValue = 'אין תזכורות מיוחדות להיום';
   if (nextExam) {
     reminderValue = `מבחן ${nextExam.subject} — ${nextExam.dateLabel}`;
@@ -127,7 +87,7 @@ export function Dashboard({ activeUser, onNavigate, onLogout }: DashboardProps) 
     if (urgent) reminderValue = `${urgent.title} — ${urgent.dueDate}`;
   }
 
-  // Exam card data
+  // ── Exam card ─────────────────────────────────────────────────────────────
   const examInfo = nextExam
     ? {
         subject: nextExam.subject,
@@ -136,6 +96,7 @@ export function Dashboard({ activeUser, onNavigate, onLogout }: DashboardProps) 
       }
     : { subject: '—', date: '—', topics: 'אין מבחן קרוב' };
 
+  // ── Summary widgets ───────────────────────────────────────────────────────
   const summaryWidgets = [
     {
       id: 'reminder',
@@ -160,8 +121,9 @@ export function Dashboard({ activeUser, onNavigate, onLogout }: DashboardProps) 
     },
     {
       id: 'message',
-      label: 'הודעה חדשה מהמורה',
-      value: latestClassAnn ? latestClassAnn.title : 'אין הודעות חדשות',
+      label:
+        unreadCount > 0 ? `${unreadCount} הודעות שלא נקראו` : 'הודעות הכיתה',
+      value: latestMessage ? latestMessage.title : 'אין הודעות חדשות',
       icon: <MessageCircle className="w-5 h-5 text-violet-600" />,
       iconBg: 'bg-violet-100',
       widgetBg: 'bg-violet-50',
@@ -175,6 +137,65 @@ export function Dashboard({ activeUser, onNavigate, onLogout }: DashboardProps) 
       iconBg: 'bg-orange-100',
       widgetBg: 'bg-orange-50',
       borderColor: 'border-orange-100',
+    },
+  ];
+
+  // ── Navigation cards ──────────────────────────────────────────────────────
+  const navCards = [
+    {
+      id: 'schedule',
+      title: 'היום שלי',
+      description: 'מה יש לך היום בלוח הזמנים',
+      icon: <CalendarDays className="w-6 h-6 text-sky-600" />,
+      iconBg: 'bg-sky-100',
+      cardBg: 'bg-sky-50',
+      borderColor: 'border-sky-100',
+      badge: undefined as number | undefined,
+      screen: { id: 'daily-schedule' } as AppScreen,
+    },
+    {
+      id: 'tasks',
+      title: 'המשימות שלי',
+      description: 'בדוק מה צריך לסיים',
+      icon: <ClipboardCheck className="w-6 h-6 text-emerald-600" />,
+      iconBg: 'bg-emerald-100',
+      cardBg: 'bg-emerald-50',
+      borderColor: 'border-emerald-100',
+      badge: remainingCount > 0 ? remainingCount : undefined,
+      screen: { id: 'assignments' } as AppScreen,
+    },
+    {
+      id: 'messages',
+      title: 'הודעות הכיתה',
+      description: 'הודעות מהמורה ומהכיתה',
+      icon: <MessageSquare className="w-6 h-6 text-violet-600" />,
+      iconBg: 'bg-violet-100',
+      cardBg: 'bg-violet-50',
+      borderColor: 'border-violet-100',
+      badge: unreadCount > 0 ? unreadCount : undefined,
+      screen: { id: 'class-messages' } as AppScreen,
+    },
+    {
+      id: 'lost-found',
+      title: 'אבדות ומציאות',
+      description: 'מצאת משהו? איבדת משהו?',
+      icon: <Search className="w-6 h-6 text-amber-600" />,
+      iconBg: 'bg-amber-100',
+      cardBg: 'bg-amber-50',
+      borderColor: 'border-amber-100',
+      badge: undefined as number | undefined,
+      screen: { id: 'placeholder', title: 'אבדות ומציאות' } as AppScreen,
+    },
+    {
+      id: 'smart-helper',
+      title: 'העוזר החכם',
+      description: 'שאל אותי כל שאלה שתרצה',
+      icon: <Sparkles className="w-6 h-6 text-rose-600" />,
+      iconBg: 'bg-rose-100',
+      cardBg: 'bg-rose-50',
+      borderColor: 'border-rose-100',
+      badge: undefined as number | undefined,
+      screen: { id: 'placeholder', title: 'העוזר החכם' } as AppScreen,
     },
   ];
 
@@ -212,23 +233,31 @@ export function Dashboard({ activeUser, onNavigate, onLogout }: DashboardProps) 
 
           {/* End (left in RTL): user info + logout */}
           <div className="flex items-center gap-2.5 flex-shrink-0">
-            {/* Class badge */}
             {cls && (
               <span className="hidden sm:inline-flex text-xs font-bold bg-sky-100 text-sky-700 px-2.5 py-1 rounded-full">
                 {cls.name}
               </span>
             )}
-            {/* Notification bell */}
+            {/* Notification bell — show unread class messages count */}
             <div className="relative">
-              <div className="w-2 h-2 bg-rose-500 rounded-full absolute -top-0.5 -right-0.5 ring-2 ring-white" />
-              <div className="w-9 h-9 rounded-full bg-violet-100 flex items-center justify-center">
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[16px] h-4 bg-rose-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-0.5 ring-2 ring-white z-10">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+              <button
+                type="button"
+                onClick={() => onNavigate({ id: 'class-messages' })}
+                title="הודעות הכיתה"
+                className="w-9 h-9 rounded-full bg-violet-100 flex items-center justify-center hover:bg-violet-200 transition-colors"
+              >
                 <Bell className="w-4 h-4 text-violet-600" />
-              </div>
+              </button>
             </div>
             {/* Avatar */}
             <div
               title={activeUser.fullName}
-              className="w-9 h-9 rounded-full bg-gradient-to-br from-violet-400 to-sky-400 flex items-center justify-center text-white font-bold text-sm shadow-sm flex-shrink-0"
+              className="w-9 h-9 rounded-full bg-gradient-to-br from-violet-400 to-sky-400 flex items-center justify-center text-white font-bold text-sm shadow-sm flex-shrink-0 select-none"
             >
               {initials}
             </div>
@@ -248,18 +277,13 @@ export function Dashboard({ activeUser, onNavigate, onLogout }: DashboardProps) 
 
       {/* ── Page body ────────────────────────────────────────────────────────── */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-        {/*
-          Two-column on desktop (lg):
-          In RTL flex, first child → RIGHT side → notice board sidebar
-          Second child → LEFT side → main content
-        */}
         <div className="lg:flex lg:gap-6 lg:items-start">
-          {/* ── Notice board sidebar (desktop only, RIGHT side in RTL) ────── */}
+          {/* Notice board sidebar (desktop, RIGHT side in RTL) */}
           <aside className="hidden lg:block lg:w-72 lg:flex-shrink-0 lg:sticky lg:top-20">
             {NoticeBoard}
           </aside>
 
-          {/* ── Main content ─────────────────────────────────────────────── */}
+          {/* Main content */}
           <main className="flex-1 min-w-0 space-y-8">
             {/* Greeting */}
             <section className="pt-1">
@@ -296,18 +320,16 @@ export function Dashboard({ activeUser, onNavigate, onLogout }: DashboardProps) 
               </div>
             </section>
 
-            {/* Notice board — mobile only, between summary and nav cards */}
-            <section className="lg:hidden">
-              {NoticeBoard}
-            </section>
+            {/* Notice board — mobile only */}
+            <section className="lg:hidden">{NoticeBoard}</section>
 
             {/* Navigation cards */}
             <section>
               <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">
-                מה תרצי לעשות?
+                מה תרצה לעשות?
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                {NAV_CARD_DATA.map((card) => (
+                {navCards.map((card) => (
                   <NavCard
                     key={card.id}
                     title={card.title}
@@ -316,16 +338,12 @@ export function Dashboard({ activeUser, onNavigate, onLogout }: DashboardProps) 
                     iconBg={card.iconBg}
                     cardBg={card.cardBg}
                     borderColor={card.borderColor}
-                    onClick={() =>
-                      onNavigate({
-                        id: 'placeholder',
-                        title: CARD_TITLES[card.id] ?? card.title,
-                      })
-                    }
+                    badge={card.badge}
+                    onClick={() => onNavigate(card.screen)}
                   />
                 ))}
 
-                {/* Featured exam card — spans full width on small screens */}
+                {/* Featured exam card */}
                 <ExamCard
                   exam={examInfo}
                   className="sm:col-span-2"

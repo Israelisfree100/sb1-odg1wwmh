@@ -7,6 +7,7 @@ import type {
   User,
   ClassGroup,
   School,
+  ClassMessage,
 } from '../types';
 import {
   TIMETABLE_ENTRIES,
@@ -14,7 +15,10 @@ import {
   EXAMS,
   ANNOUNCEMENTS,
   LOST_FOUND_ITEMS,
+  DAILY_INFO,
 } from '../data/mockData';
+import type { DailyInfo } from '../data/mockData';
+import { CLASS_MESSAGES } from '../data/classMessages';
 import { SCHOOLS, CLASSES } from '../data/schools';
 
 // ─── School & Class ───────────────────────────────────────────────────────────
@@ -48,17 +52,23 @@ export function getTodayTimetable(classId: string): TimetableEntry[] {
   ).sort((a, b) => a.period - b.period);
 }
 
+// ─── Daily Info ───────────────────────────────────────────────────────────────
+
+export function getDailyInfo(classId: string): DailyInfo | undefined {
+  return DAILY_INFO.find((d) => d.classId === classId);
+}
+
 // ─── Assignments ──────────────────────────────────────────────────────────────
 
 export function getAssignments(classId: string): Assignment[] {
   return ASSIGNMENTS.filter((a) => a.classId === classId);
 }
 
-const COMPLETED_PREFIX = 'chaveri_completed_';
+const ASSIGNMENT_STATUS_PREFIX = 'assignment_status_';
 
 export function getCompletedAssignmentIds(userId: string): string[] {
   try {
-    const raw = localStorage.getItem(COMPLETED_PREFIX + userId);
+    const raw = localStorage.getItem(ASSIGNMENT_STATUS_PREFIX + userId);
     return raw ? (JSON.parse(raw) as string[]) : [];
   } catch {
     return [];
@@ -74,7 +84,10 @@ export function toggleAssignmentComplete(
     ? current.filter((id) => id !== assignmentId)
     : [...current, assignmentId];
   try {
-    localStorage.setItem(COMPLETED_PREFIX + userId, JSON.stringify(updated));
+    localStorage.setItem(
+      ASSIGNMENT_STATUS_PREFIX + userId,
+      JSON.stringify(updated),
+    );
   } catch {
     // ignore
   }
@@ -109,6 +122,48 @@ export function getRelevantAnnouncements(user: User): Announcement[] {
       return true;
     return false;
   });
+}
+
+// ─── Class Messages ───────────────────────────────────────────────────────────
+
+export function getClassMessages(classId: string): ClassMessage[] {
+  return CLASS_MESSAGES.filter((m) => m.classId === classId);
+}
+
+const READ_MESSAGES_PREFIX = 'class_messages_read_';
+
+export function getReadMessageIds(userId: string): string[] {
+  try {
+    const raw = localStorage.getItem(READ_MESSAGES_PREFIX + userId);
+    return raw ? (JSON.parse(raw) as string[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function markMessageRead(userId: string, messageId: string): void {
+  const current = getReadMessageIds(userId);
+  if (!current.includes(messageId)) {
+    try {
+      localStorage.setItem(
+        READ_MESSAGES_PREFIX + userId,
+        JSON.stringify([...current, messageId]),
+      );
+    } catch {
+      // ignore
+    }
+  }
+}
+
+export function markAllMessagesRead(userId: string, messageIds: string[]): void {
+  try {
+    localStorage.setItem(
+      READ_MESSAGES_PREFIX + userId,
+      JSON.stringify(messageIds),
+    );
+  } catch {
+    // ignore
+  }
 }
 
 // ─── Lost & Found ─────────────────────────────────────────────────────────────

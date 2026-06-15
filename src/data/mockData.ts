@@ -70,6 +70,11 @@ export const ASSIGNMENTS: Assignment[] = [
   { id: 'asgn-m1', schoolId: 'rakafot', classId: 'rakafot-g3', subject: 'מדעים', title: 'ניסוי מחזור המים בבית', description: 'לבצע את ניסוי מחזור המים ולצלם תמונה', dueDate: 'מחר', teacherName: 'מירי גרין', priority: 'high' },
   { id: 'asgn-m2', schoolId: 'rakafot', classId: 'rakafot-g3', subject: 'אנגלית', title: 'Vocabulary list — unit 3', description: 'ללמוד 10 מילים חדשות לקראת המבחן', dueDate: "יום ד'", teacherName: 'ליאור מור', priority: 'medium' },
   { id: 'asgn-m3', schoolId: 'rakafot', classId: 'rakafot-g3', subject: 'חשבון', title: 'דף תרגול — כפל', description: 'להשלים דף תרגול כפל', dueDate: "יום ו'", teacherName: 'אבי כץ', priority: 'low' },
+
+  // ── Additional assignments due TODAY (extended, not modifying originals) ──
+  { id: 'asgn-a4', schoolId: 'shaked', classId: 'shaked-g2', subject: 'חשבון', title: 'חזרה לקראת המבחן', description: 'לחזור על לוח כפל 7 ו-8 — שיעור נוסף להכנה', dueDate: 'היום', teacherName: 'רחל לוי', priority: 'high' },
+  { id: 'asgn-n3', schoolId: 'shaked', classId: 'shaked-g1', subject: 'עברית', title: 'לסיים את הטיוטה', description: 'לסיים את טיוטת החיבור ולהביא לכיתה', dueDate: 'היום', teacherName: 'שרה כהן', priority: 'high' },
+  { id: 'asgn-m4', schoolId: 'rakafot', classId: 'rakafot-g3', subject: 'מדעים', title: 'לצפות בסרטון', description: 'לצפות בסרטון על מחזור המים בקישור שנשלח', dueDate: 'היום', teacherName: 'מירי גרין', priority: 'medium' },
 ];
 
 // ─── EXAMS ────────────────────────────────────────────────────────────────────
@@ -260,4 +265,38 @@ export const LOST_FOUND_ITEMS: LostFoundItem[] = [
   { id: 'lf-r1', schoolId: 'rakafot', type: 'found', itemName: 'כובע בייסבול', description: 'כובע בייסבול אפור עם לוגו כחול', location: 'חצר בית הספר', date: '14/06', status: 'open', color: 'אפור' },
   { id: 'lf-r2', schoolId: 'rakafot', type: 'lost', itemName: 'תיק ספורט', description: 'תיק ספורט שחור עם פסים לבנים', location: 'חדר הלבשה', date: '13/06', status: 'open', color: 'שחור', reportedBy: 'maya' },
   { id: 'lf-r3', schoolId: 'rakafot', type: 'found', itemName: 'עפרון מכני', description: 'עפרון מכני כחול-לבן', location: 'ספרייה', date: '12/06', status: 'open', color: 'כחול-לבן' },
+];
+
+// ─── DAILY INFO ────────────────────────────────────────────────────────────────
+
+export interface DailyInfo {
+  classId: string;
+  itemsToBring: string[];
+  homeworkDueToday: string[];
+  reminder: string;
+  upcomingEvent: string;
+}
+
+export const DAILY_INFO: DailyInfo[] = [
+  {
+    classId: 'shaked-g2',
+    itemsToBring: ['ספר חשבון', 'ציוד ציור (מכחולים וצבעי מים)', 'בגדי ספורט'],
+    homeworkDueToday: ['לקרוא פרק 5 בעברית', 'לחזור על לוח כפל 7 ו-8'],
+    reminder: 'לא לשכוח: יש להביא אישור הורים לטיול עד יום חמישי!',
+    upcomingEvent: 'טיול שכבתי ביום חמישי הקרוב',
+  },
+  {
+    classId: 'shaked-g1',
+    itemsToBring: ['ספר עברית', 'מחברת כתיבה', 'קלמר'],
+    homeworkDueToday: ['להשלים טיוטת החיבור', 'לקרוא עמודים 20–22 בקריאה'],
+    reminder: 'מבחן עברית ביום רביעי — לחזור על שאלות ההבנה!',
+    upcomingEvent: 'יום ספורט בית ספרי ביום שישי',
+  },
+  {
+    classId: 'rakafot-g3',
+    itemsToBring: ['ספר מדעים', 'צנצנת זכוכית קטנה לניסוי', 'חולצה ישנה'],
+    homeworkDueToday: ['לצפות בסרטון על מחזור המים', 'לרשום 3 תצפיות'],
+    reminder: 'להביא חולצה ישנה ליום האמנות ביום שלישי',
+    upcomingEvent: 'סיור שכבתי לים ביום שני הבא',
+  },
 ];

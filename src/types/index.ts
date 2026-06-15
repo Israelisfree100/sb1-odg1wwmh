@@ -1,11 +1,14 @@
-// ─── Practice / Exam Assistant (existing) ────────────────────────────────────
+// ─── Practice / Exam Assistant ───────────────────────────────────────────────
 
 export type AppScreen =
   | { id: 'dashboard' }
+  | { id: 'daily-schedule' }
+  | { id: 'assignments' }
+  | { id: 'class-messages' }
   | { id: 'exam-assistant' }
   | { id: 'practice'; mode: PracticeMode; subject?: string }
-  | { id: 'placeholder'; title: string }
-  | { id: 'announcements' };
+  | { id: 'announcements' }
+  | { id: 'placeholder'; title: string };
 
 export type PracticeMode = 'quick' | 'full' | 'by-topic';
 
@@ -21,7 +24,7 @@ export interface Question {
   topic: TopicKey;
 }
 
-// ─── Platform / Multi-school types ───────────────────────────────────────────
+// ─── Platform / Multi-school ──────────────────────────────────────────────────
 
 export type UserRole =
   | 'student'
@@ -119,4 +122,21 @@ export interface LostFoundItem {
   color?: string;
   classId?: string;
   reportedBy?: string;
+}
+
+// ─── Class Messages ───────────────────────────────────────────────────────────
+
+export type MessageCategory = 'general' | 'homework' | 'exam' | 'activity';
+
+export interface ClassMessage {
+  id: string;
+  schoolId: string;
+  classId: string;
+  grade: string;
+  teacherName: string;
+  category: MessageCategory;
+  title: string;
+  content: string;
+  publishedAt: string;
+  isImportant: boolean;
 }
