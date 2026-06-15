@@ -52,7 +52,7 @@ export function Dashboard({ activeUser, onNavigate, onLogout }: DashboardProps) 
 
   // ── Exam ──────────────────────────────────────────────────────────────────
   const nextExam = activeUser.classId
-    ? getNextExam(activeUser.classId)
+    ? getNextExam(activeUser.classId, activeUser.schoolId)
     : undefined;
 
   // ── Announcements (notice board) ──────────────────────────────────────────

@@ -213,6 +213,35 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
                   maya / 1234
                 </code>
               </div>
+              <div className="flex items-center justify-between gap-4 border-t border-amber-200 pt-1.5 mt-1">
+                <span className="font-semibold">בית ספר רמת אביב ג׳</span>
+                <code className="bg-amber-100 rounded-lg px-2 py-0.5 text-xs font-mono">
+                  alma-rag / 1234
+                </code>
+              </div>
+              <div className="border-t border-amber-300 pt-2 mt-2">
+                <p className="text-xs text-amber-600 font-bold mb-1.5">מנהלים (school_admin):</p>
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="text-xs">השקד</span>
+                    <code className="bg-amber-100 rounded px-1.5 py-0.5 text-xs font-mono">
+                      admin-shaked / 1234
+                    </code>
+                  </div>
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="text-xs">הרקפות</span>
+                    <code className="bg-amber-100 rounded px-1.5 py-0.5 text-xs font-mono">
+                      admin-rakafot / 1234
+                    </code>
+                  </div>
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="text-xs">רמת אביב ג׳</span>
+                    <code className="bg-amber-100 rounded px-1.5 py-0.5 text-xs font-mono">
+                      admin-rag / 1234
+                    </code>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}

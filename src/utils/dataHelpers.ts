@@ -12,14 +12,16 @@ import type {
 import {
   TIMETABLE_ENTRIES,
   ASSIGNMENTS,
-  EXAMS,
-  ANNOUNCEMENTS,
   LOST_FOUND_ITEMS,
   DAILY_INFO,
 } from '../data/mockData';
 import type { DailyInfo } from '../data/mockData';
 import { CLASS_MESSAGES } from '../data/classMessages';
 import { SCHOOLS, CLASSES } from '../data/schools';
+import {
+  getPublishedAnnouncements,
+} from '../services/announcementRepository';
+import { getExamsForClass } from '../services/examRepository';
 
 // ─── School & Class ───────────────────────────────────────────────────────────
 
@@ -62,8 +64,15 @@ export function getNextLesson(classId: string): TimetableEntry | undefined {
   const now = new Date();
   const nowMins = now.getHours() * 60 + now.getMinutes();
   return getTodayTimetable(classId).find(
-    (l) => toMinutes(l.startTime) > nowMins,
+    (l) => !l.isBreak && toMinutes(l.startTime) > nowMins,
   );
+}
+
+/** Returns the room for the first occurrence of a subject in the class timetable (any day). */
+export function getSubjectRoom(classId: string, subject: string): string | undefined {
+  return TIMETABLE_ENTRIES.find(
+    (e) => e.classId === classId && e.subject === subject,
+  )?.room;
 }
 
 // ─── Daily Info ───────────────────────────────────────────────────────────────
@@ -119,25 +128,24 @@ export function getIncompleteAssignments(
 
 // ─── Exams ────────────────────────────────────────────────────────────────────
 
-export function getExams(classId: string): Exam[] {
-  return EXAMS.filter((e) => e.classId === classId);
+export function getExams(classId: string, schoolId: string): Exam[] {
+  return getExamsForClass(classId, schoolId);
 }
 
-export function getNextExam(classId: string): Exam | undefined {
-  return EXAMS.find((e) => e.classId === classId);
+export function getNextExam(classId: string, schoolId: string): Exam | undefined {
+  return getExamsForClass(classId, schoolId)[0];
 }
 
 // ─── Announcements ────────────────────────────────────────────────────────────
 
 /**
- * Returns all announcements relevant to the given student:
+ * Returns all published announcements relevant to the given student:
  * school-wide + matching grade + matching class.
- * Parents-only announcements are excluded for students.
+ * Parents-only and unpublished announcements are excluded.
  */
 export function getRelevantAnnouncements(user: User): Announcement[] {
   const cls = user.classId ? getClass(user.classId) : undefined;
-  return ANNOUNCEMENTS.filter((ann) => {
-    if (ann.schoolId !== user.schoolId) return false;
+  return getPublishedAnnouncements(user.schoolId).filter((ann) => {
     if (ann.audience === 'parents') return false;
     if (ann.audience === 'school') return true;
     if (ann.audience === 'grade' && cls && ann.targetGrade === cls.grade)

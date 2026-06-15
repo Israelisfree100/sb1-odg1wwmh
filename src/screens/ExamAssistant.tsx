@@ -133,7 +133,9 @@ export function ExamAssistant({
   onStartPractice,
   onLogout,
 }: ExamAssistantProps) {
-  const exams = activeUser.classId ? getExams(activeUser.classId) : [];
+  const exams = activeUser.classId
+    ? getExams(activeUser.classId, activeUser.schoolId)
+    : [];
   const [selectedExamId, setSelectedExamId] = useState<string>(
     exams[0]?.id ?? '',
   );

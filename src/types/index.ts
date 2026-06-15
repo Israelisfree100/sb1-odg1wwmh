@@ -10,7 +10,10 @@ export type AppScreen =
   | { id: 'exam-assistant' }
   | { id: 'practice'; mode: PracticeMode; subject?: string }
   | { id: 'announcements' }
-  | { id: 'placeholder'; title: string };
+  | { id: 'placeholder'; title: string }
+  | { id: 'admin-dashboard' }
+  | { id: 'admin-announcements' }
+  | { id: 'admin-exams' };
 
 export type PracticeMode = 'quick' | 'full' | 'by-topic';
 
@@ -39,6 +42,9 @@ export interface School {
   id: string;
   name: string;
   city?: string;
+  fullName?: string;
+  address?: string;
+  description?: string;
 }
 
 export interface User {
@@ -67,12 +73,15 @@ export interface TimetableEntry {
   classId: string;
   /** 0 = Sunday … 4 = Thursday (Israeli school week) */
   dayOfWeek: number;
+  /** Sort order within the day (includes break slots for schools that define them). */
   period: number;
   subject: string;
   teacherName: string;
   room?: string;
   startTime: string;
   endTime: string;
+  /** When true, this entry is a break period (lunch, recess…). */
+  isBreak?: boolean;
 }
 
 export interface Assignment {
@@ -85,16 +94,6 @@ export interface Assignment {
   dueDate: string;
   teacherName: string;
   priority: 'low' | 'medium' | 'high';
-}
-
-export interface Exam {
-  id: string;
-  schoolId: string;
-  classId: string;
-  subject: string;
-  dateLabel: string;
-  topics: string[];
-  teacherName: string;
 }
 
 export type AnnouncementAudience = 'school' | 'grade' | 'class' | 'parents';
@@ -110,6 +109,19 @@ export interface Announcement {
   date: string;
   author: string;
   important: boolean;
+  /** undefined or true = published (visible to students); false = draft (admin-only). */
+  isPublished?: boolean;
+}
+
+export interface Exam {
+  id: string;
+  schoolId: string;
+  classId: string;
+  subject: string;
+  dateLabel: string;
+  topics: string[];
+  teacherName: string;
+  notes?: string;
 }
 
 // ─── Lost & Found ─────────────────────────────────────────────────────────────

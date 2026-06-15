@@ -52,6 +52,56 @@ export const TIMETABLE_ENTRIES: TimetableEntry[] = [
   { id: 'tt-mg3-14', schoolId: 'rakafot', classId: 'rakafot-g3', dayOfWeek: 1, period: 4, subject: 'ספורט', teacherName: 'גיא נחום', startTime: '10:45', endTime: '11:30' },
   { id: 'tt-mg3-15', schoolId: 'rakafot', classId: 'rakafot-g3', dayOfWeek: 1, period: 5, subject: 'אנגלית', teacherName: 'ליאור מור', startTime: '11:35', endTime: '12:20' },
   { id: 'tt-mg3-16', schoolId: 'rakafot', classId: 'rakafot-g3', dayOfWeek: 1, period: 6, subject: 'אמנות', teacherName: 'רות בן-דוד', startTime: '12:25', endTime: '13:10' },
+
+  // ── class-rag-g2 (Ramat Aviv G) ───────────────────────────────────────────
+  // Bell schedule: 1=08:00-08:45, 2=08:45-09:30, 3=BIG BREAK 09:30-10:15,
+  //                4=10:15-11:00, 5=11:00-11:45, 6=SMALL BREAK 11:45-12:00,
+  //                7=12:00-12:45, 8=12:45-13:30
+  // Sunday
+  { id: 'tt-rag-01', schoolId: 'ramat-aviv-g', classId: 'class-rag-g2', dayOfWeek: 0, period: 1, subject: 'עברית', teacherName: 'ענת לוי', room: "כיתה ג'2", startTime: '08:00', endTime: '08:45' },
+  { id: 'tt-rag-02', schoolId: 'ramat-aviv-g', classId: 'class-rag-g2', dayOfWeek: 0, period: 2, subject: 'חשבון', teacherName: 'אמיר שאול', room: "כיתה ג'2", startTime: '08:45', endTime: '09:30' },
+  { id: 'tt-rag-0b1', schoolId: 'ramat-aviv-g', classId: 'class-rag-g2', dayOfWeek: 0, period: 3, subject: 'הפסקת אוכל והפסקה גדולה', teacherName: '', startTime: '09:30', endTime: '10:15', isBreak: true },
+  { id: 'tt-rag-04', schoolId: 'ramat-aviv-g', classId: 'class-rag-g2', dayOfWeek: 0, period: 4, subject: 'מדעים', teacherName: 'יונתן רז', room: "כיתה ג'2", startTime: '10:15', endTime: '11:00' },
+  { id: 'tt-rag-05', schoolId: 'ramat-aviv-g', classId: 'class-rag-g2', dayOfWeek: 0, period: 5, subject: 'ספרייה', teacherName: 'ורד נחמיאס', room: 'ספריית בית הספר', startTime: '11:00', endTime: '11:45' },
+  { id: 'tt-rag-0b2', schoolId: 'ramat-aviv-g', classId: 'class-rag-g2', dayOfWeek: 0, period: 6, subject: 'הפסקה קטנה', teacherName: '', startTime: '11:45', endTime: '12:00', isBreak: true },
+  { id: 'tt-rag-07', schoolId: 'ramat-aviv-g', classId: 'class-rag-g2', dayOfWeek: 0, period: 7, subject: 'מוזיקה', teacherName: 'דוד כץ', room: 'חדר מוזיקה', startTime: '12:00', endTime: '12:45' },
+  { id: 'tt-rag-08', schoolId: 'ramat-aviv-g', classId: 'class-rag-g2', dayOfWeek: 0, period: 8, subject: 'אמנות', teacherName: 'מיה לבנה', room: 'חדר אמנות', startTime: '12:45', endTime: '13:30' },
+  // Monday
+  { id: 'tt-rag-11', schoolId: 'ramat-aviv-g', classId: 'class-rag-g2', dayOfWeek: 1, period: 1, subject: 'עברית', teacherName: 'ענת לוי', room: "כיתה ג'2", startTime: '08:00', endTime: '08:45' },
+  { id: 'tt-rag-12', schoolId: 'ramat-aviv-g', classId: 'class-rag-g2', dayOfWeek: 1, period: 2, subject: 'חשבון', teacherName: 'אמיר שאול', room: "כיתה ג'2", startTime: '08:45', endTime: '09:30' },
+  { id: 'tt-rag-1b1', schoolId: 'ramat-aviv-g', classId: 'class-rag-g2', dayOfWeek: 1, period: 3, subject: 'הפסקת אוכל והפסקה גדולה', teacherName: '', startTime: '09:30', endTime: '10:15', isBreak: true },
+  { id: 'tt-rag-14', schoolId: 'ramat-aviv-g', classId: 'class-rag-g2', dayOfWeek: 1, period: 4, subject: 'אנגלית', teacherName: 'נעמי ברק', room: "כיתה ג'2", startTime: '10:15', endTime: '11:00' },
+  { id: 'tt-rag-15', schoolId: 'ramat-aviv-g', classId: 'class-rag-g2', dayOfWeek: 1, period: 5, subject: 'מדעים', teacherName: 'יונתן רז', room: "כיתה ג'2", startTime: '11:00', endTime: '11:45' },
+  { id: 'tt-rag-1b2', schoolId: 'ramat-aviv-g', classId: 'class-rag-g2', dayOfWeek: 1, period: 6, subject: 'הפסקה קטנה', teacherName: '', startTime: '11:45', endTime: '12:00', isBreak: true },
+  { id: 'tt-rag-17', schoolId: 'ramat-aviv-g', classId: 'class-rag-g2', dayOfWeek: 1, period: 7, subject: 'ספורט', teacherName: 'גיא נחמן', room: 'אולם הספורט', startTime: '12:00', endTime: '12:45' },
+  { id: 'tt-rag-18', schoolId: 'ramat-aviv-g', classId: 'class-rag-g2', dayOfWeek: 1, period: 8, subject: 'אמנות', teacherName: 'מיה לבנה', room: 'חדר אמנות', startTime: '12:45', endTime: '13:30' },
+  // Tuesday
+  { id: 'tt-rag-21', schoolId: 'ramat-aviv-g', classId: 'class-rag-g2', dayOfWeek: 2, period: 1, subject: 'חשבון', teacherName: 'אמיר שאול', room: "כיתה ג'2", startTime: '08:00', endTime: '08:45' },
+  { id: 'tt-rag-22', schoolId: 'ramat-aviv-g', classId: 'class-rag-g2', dayOfWeek: 2, period: 2, subject: 'עברית', teacherName: 'ענת לוי', room: "כיתה ג'2", startTime: '08:45', endTime: '09:30' },
+  { id: 'tt-rag-2b1', schoolId: 'ramat-aviv-g', classId: 'class-rag-g2', dayOfWeek: 2, period: 3, subject: 'הפסקת אוכל והפסקה גדולה', teacherName: '', startTime: '09:30', endTime: '10:15', isBreak: true },
+  { id: 'tt-rag-24', schoolId: 'ramat-aviv-g', classId: 'class-rag-g2', dayOfWeek: 2, period: 4, subject: 'ספורט', teacherName: 'גיא נחמן', room: 'אולם הספורט', startTime: '10:15', endTime: '11:00' },
+  { id: 'tt-rag-25', schoolId: 'ramat-aviv-g', classId: 'class-rag-g2', dayOfWeek: 2, period: 5, subject: 'אנגלית', teacherName: 'נעמי ברק', room: "כיתה ג'2", startTime: '11:00', endTime: '11:45' },
+  { id: 'tt-rag-2b2', schoolId: 'ramat-aviv-g', classId: 'class-rag-g2', dayOfWeek: 2, period: 6, subject: 'הפסקה קטנה', teacherName: '', startTime: '11:45', endTime: '12:00', isBreak: true },
+  { id: 'tt-rag-27', schoolId: 'ramat-aviv-g', classId: 'class-rag-g2', dayOfWeek: 2, period: 7, subject: 'מדעים', teacherName: 'יונתן רז', room: "כיתה ג'2", startTime: '12:00', endTime: '12:45' },
+  { id: 'tt-rag-28', schoolId: 'ramat-aviv-g', classId: 'class-rag-g2', dayOfWeek: 2, period: 8, subject: 'ספרייה', teacherName: 'ורד נחמיאס', room: 'ספריית בית הספר', startTime: '12:45', endTime: '13:30' },
+  // Wednesday
+  { id: 'tt-rag-31', schoolId: 'ramat-aviv-g', classId: 'class-rag-g2', dayOfWeek: 3, period: 1, subject: 'עברית', teacherName: 'ענת לוי', room: "כיתה ג'2", startTime: '08:00', endTime: '08:45' },
+  { id: 'tt-rag-32', schoolId: 'ramat-aviv-g', classId: 'class-rag-g2', dayOfWeek: 3, period: 2, subject: 'מוזיקה', teacherName: 'דוד כץ', room: 'חדר מוזיקה', startTime: '08:45', endTime: '09:30' },
+  { id: 'tt-rag-3b1', schoolId: 'ramat-aviv-g', classId: 'class-rag-g2', dayOfWeek: 3, period: 3, subject: 'הפסקת אוכל והפסקה גדולה', teacherName: '', startTime: '09:30', endTime: '10:15', isBreak: true },
+  { id: 'tt-rag-34', schoolId: 'ramat-aviv-g', classId: 'class-rag-g2', dayOfWeek: 3, period: 4, subject: 'חשבון', teacherName: 'אמיר שאול', room: "כיתה ג'2", startTime: '10:15', endTime: '11:00' },
+  { id: 'tt-rag-35', schoolId: 'ramat-aviv-g', classId: 'class-rag-g2', dayOfWeek: 3, period: 5, subject: 'כישורי חיים', teacherName: 'ענת לוי', room: "כיתה ג'2", startTime: '11:00', endTime: '11:45' },
+  { id: 'tt-rag-3b2', schoolId: 'ramat-aviv-g', classId: 'class-rag-g2', dayOfWeek: 3, period: 6, subject: 'הפסקה קטנה', teacherName: '', startTime: '11:45', endTime: '12:00', isBreak: true },
+  { id: 'tt-rag-37', schoolId: 'ramat-aviv-g', classId: 'class-rag-g2', dayOfWeek: 3, period: 7, subject: 'אנגלית', teacherName: 'נעמי ברק', room: "כיתה ג'2", startTime: '12:00', endTime: '12:45' },
+  { id: 'tt-rag-38', schoolId: 'ramat-aviv-g', classId: 'class-rag-g2', dayOfWeek: 3, period: 8, subject: 'אמנות', teacherName: 'מיה לבנה', room: 'חדר אמנות', startTime: '12:45', endTime: '13:30' },
+  // Thursday
+  { id: 'tt-rag-41', schoolId: 'ramat-aviv-g', classId: 'class-rag-g2', dayOfWeek: 4, period: 1, subject: 'חשבון', teacherName: 'אמיר שאול', room: "כיתה ג'2", startTime: '08:00', endTime: '08:45' },
+  { id: 'tt-rag-42', schoolId: 'ramat-aviv-g', classId: 'class-rag-g2', dayOfWeek: 4, period: 2, subject: 'עברית', teacherName: 'ענת לוי', room: "כיתה ג'2", startTime: '08:45', endTime: '09:30' },
+  { id: 'tt-rag-4b1', schoolId: 'ramat-aviv-g', classId: 'class-rag-g2', dayOfWeek: 4, period: 3, subject: 'הפסקת אוכל והפסקה גדולה', teacherName: '', startTime: '09:30', endTime: '10:15', isBreak: true },
+  { id: 'tt-rag-44', schoolId: 'ramat-aviv-g', classId: 'class-rag-g2', dayOfWeek: 4, period: 4, subject: 'אנגלית', teacherName: 'נעמי ברק', room: "כיתה ג'2", startTime: '10:15', endTime: '11:00' },
+  { id: 'tt-rag-45', schoolId: 'ramat-aviv-g', classId: 'class-rag-g2', dayOfWeek: 4, period: 5, subject: 'ספורט', teacherName: 'גיא נחמן', room: 'אולם הספורט', startTime: '11:00', endTime: '11:45' },
+  { id: 'tt-rag-4b2', schoolId: 'ramat-aviv-g', classId: 'class-rag-g2', dayOfWeek: 4, period: 6, subject: 'הפסקה קטנה', teacherName: '', startTime: '11:45', endTime: '12:00', isBreak: true },
+  { id: 'tt-rag-47', schoolId: 'ramat-aviv-g', classId: 'class-rag-g2', dayOfWeek: 4, period: 7, subject: 'מדעים', teacherName: 'יונתן רז', room: "כיתה ג'2", startTime: '12:00', endTime: '12:45' },
+  { id: 'tt-rag-48', schoolId: 'ramat-aviv-g', classId: 'class-rag-g2', dayOfWeek: 4, period: 8, subject: 'כישורי חיים', teacherName: 'ענת לוי', room: "כיתה ג'2", startTime: '12:45', endTime: '13:30' },
 ];
 
 // ─── ASSIGNMENTS ──────────────────────────────────────────────────────────────
@@ -75,6 +125,13 @@ export const ASSIGNMENTS: Assignment[] = [
   { id: 'asgn-a4', schoolId: 'shaked', classId: 'shaked-g2', subject: 'חשבון', title: 'חזרה לקראת המבחן', description: 'לחזור על לוח כפל 7 ו-8 — שיעור נוסף להכנה', dueDate: 'היום', teacherName: 'רחל לוי', priority: 'high' },
   { id: 'asgn-n3', schoolId: 'shaked', classId: 'shaked-g1', subject: 'עברית', title: 'לסיים את הטיוטה', description: 'לסיים את טיוטת החיבור ולהביא לכיתה', dueDate: 'היום', teacherName: 'שרה כהן', priority: 'high' },
   { id: 'asgn-m4', schoolId: 'rakafot', classId: 'rakafot-g3', subject: 'מדעים', title: 'לצפות בסרטון', description: 'לצפות בסרטון על מחזור המים בקישור שנשלח', dueDate: 'היום', teacherName: 'מירי גרין', priority: 'medium' },
+
+  // ── class-rag-g2 (Ramat Aviv G) ───────────────────────────────────────────
+  { id: 'asgn-rag-1', schoolId: 'ramat-aviv-g', classId: 'class-rag-g2', subject: 'עברית', title: 'קריאה בספר', description: 'לקרוא עמודים 20–22 בספר הקריאה ולסכם בשלושה משפטים', dueDate: 'היום', teacherName: 'ענת לוי', priority: 'medium' },
+  { id: 'asgn-rag-2', schoolId: 'ramat-aviv-g', classId: 'class-rag-g2', subject: 'חשבון', title: 'דף תרגול כפל', description: 'לפתור דף תרגול כפל עמודים 14–15 — לוחות 7, 8 ו-9', dueDate: 'מחר', teacherName: 'אמיר שאול', priority: 'high' },
+  { id: 'asgn-rag-3', schoolId: 'ramat-aviv-g', classId: 'class-rag-g2', subject: 'אנגלית', title: 'Unit 2 Vocabulary', description: 'ללמוד 10 מילים חדשות מיחידה 2 לקראת תרגיל בכיתה', dueDate: "יום ד'", teacherName: 'נעמי ברק', priority: 'low' },
+  { id: 'asgn-rag-4', schoolId: 'ramat-aviv-g', classId: 'class-rag-g2', subject: 'מדעים', title: 'תצפית — מחזור המים', description: 'לצפות בסרטון ההסבר על מחזור המים ולרשום שלוש תצפיות', dueDate: "יום ה'", teacherName: 'יונתן רז', priority: 'medium' },
+  { id: 'asgn-rag-5', schoolId: 'ramat-aviv-g', classId: 'class-rag-g2', subject: 'ספרייה', title: 'להחזיר ספר לספרייה', description: 'חובה להחזיר את ספר הספרייה עד יום רביעי — לפני שיעור הספרייה', dueDate: "יום ד'", teacherName: 'ורד נחמיאס', priority: 'high' },
 ];
 
 // ─── EXAMS ────────────────────────────────────────────────────────────────────
@@ -111,6 +168,26 @@ export const EXAMS: Exam[] = [
     dateLabel: 'שני הבא',
     topics: ['מחזור המים', 'צמחים ותנאי גידול', 'חיות מחמד'],
     teacherName: 'מירי גרין',
+  },
+
+  // ── class-rag-g2 (Ramat Aviv G) ───────────────────────────────────────────
+  {
+    id: 'exam-rag-1',
+    schoolId: 'ramat-aviv-g',
+    classId: 'class-rag-g2',
+    subject: 'חשבון',
+    dateLabel: "יום ד' הקרוב",
+    topics: ['כפל עד 10', 'חילוק בסיסי', 'סדר פעולות פשוט', 'בעיות מילוליות'],
+    teacherName: 'אמיר שאול',
+  },
+  {
+    id: 'exam-rag-2',
+    schoolId: 'ramat-aviv-g',
+    classId: 'class-rag-g2',
+    subject: 'עברית',
+    dateLabel: "יום ה'",
+    topics: ['הבנת הנקרא', 'מילים נרדפות', 'כתיבת משפטים'],
+    teacherName: 'ענת לוי',
   },
 ];
 
@@ -252,6 +329,91 @@ export const ANNOUNCEMENTS: Announcement[] = [
     author: 'ליאור מור',
     important: false,
   },
+
+  // ── ramat-aviv-g ─────────────────────────────────────────────────────────
+  {
+    id: 'ann-rag-1',
+    schoolId: 'ramat-aviv-g',
+    audience: 'school',
+    title: 'איגרת לפתיחת שבוע',
+    content: 'שבוע טוב לכל משפחות בית הספר! השבוע מתחילות פעילויות רבות ומגוונות. נשמח לראות את כולם עם חיוך, בקבוק מים מלא וכובע.',
+    date: '15/06',
+    author: 'הנהלת בית הספר',
+    important: false,
+  },
+  {
+    id: 'ann-rag-2',
+    schoolId: 'ramat-aviv-g',
+    audience: 'school',
+    title: 'יום ספורט בית ספרי — יום שישי',
+    content: 'ביום שישי הקרוב יתקיים יום ספורט חגיגי לכל בית הספר בחצר. יש להגיע עם בגדי ספורט, נעלי ריצה ובקבוק מים גדול. הפעילות תתקיים גם במקרה של עננות קלה.',
+    date: '14/06',
+    author: 'הנהלת בית הספר',
+    important: true,
+  },
+  {
+    id: 'ann-rag-3',
+    schoolId: 'ramat-aviv-g',
+    audience: 'grade',
+    targetGrade: "ג'",
+    title: "פעילות שכבת ג' — ידע וסקרנות",
+    content: "ביום שלישי הקרוב תתקיים פעילות שכבתית לכיתות ג' בנושא סקרנות מדעית. נבצע ניסויים קטנים ונציג לאחד לשני תגליות מרתקות.",
+    date: '13/06',
+    author: "צוות שכבת ג'",
+    important: false,
+  },
+  {
+    id: 'ann-rag-4',
+    schoolId: 'ramat-aviv-g',
+    audience: 'class',
+    targetClassId: 'class-rag-g2',
+    title: "מפגש הורים — כיתה ג'2",
+    content: "מפגש הורים קרוב! ביום שלישי בשעה 17:30 בכיתה ג'2. נדון בהתקדמות השנה, הכנות לסוף שנה ותכניות לשנה הבאה. נשמח לראות כמה שיותר הורים.",
+    date: '12/06',
+    author: "ענת לוי, מחנכת ג'2",
+    important: true,
+  },
+  {
+    id: 'ann-rag-5',
+    schoolId: 'ramat-aviv-g',
+    audience: 'school',
+    title: 'טקס קהילתי חגיגי — סוף שנה',
+    content: 'טקס סיום שנת הלימודים יתקיים ב-26 ביוני בשעה 17:00 בחצר בית הספר. כל המשפחות מוזמנות. תכנית מיוחדת הכוללת הופעות, פרסי הצטיינות ואנשי הכיתה.',
+    date: '10/06',
+    author: 'הנהלת בית הספר',
+    important: true,
+  },
+  {
+    id: 'ann-rag-6',
+    schoolId: 'ramat-aviv-g',
+    audience: 'school',
+    title: 'תזכורת חשובה: כובע ובקבוק מים',
+    content: 'עם התחממות מזג האוויר, חשוב להגיע כל יום עם כובע ובקבוק מים מלא. הגוף הקטן צמא! לא מגיעים בלי בקבוק מים.',
+    date: '15/06',
+    author: 'צוות החינוך',
+    important: false,
+  },
+  {
+    id: 'ann-rag-7',
+    schoolId: 'ramat-aviv-g',
+    audience: 'school',
+    title: 'עדכון שעות הצהרון',
+    content: 'החל מהשבוע הבא, שעות הצהרון ישתנו: סיום ב-16:30 במקום 17:00. נא לתאם איסוף בהתאם. לפרטים נוספים ניתן לפנות למשרד הצהרון.',
+    date: '14/06',
+    author: 'הנהלת הצהרון',
+    important: true,
+  },
+  {
+    id: 'ann-rag-8',
+    schoolId: 'ramat-aviv-g',
+    audience: 'grade',
+    targetGrade: "ג'",
+    title: "שעת סיפור בספרייה — שכבת ג'",
+    content: "ביום שלישי הקרוב שכבת ג' מוזמנת לשעת סיפור מיוחדת בספריית בית הספר. נקרא יחד ספר חדש ונחליף המלצות. יש להחזיר ספרים שאולים עד אז.",
+    date: '13/06',
+    author: 'ורד נחמיאס, רכזת הספרייה',
+    important: false,
+  },
 ];
 
 // ─── LOST & FOUND ─────────────────────────────────────────────────────────────
@@ -337,6 +499,43 @@ export const LOST_FOUND_ITEMS: LostFoundItem[] = [
     date: '11/06', color: 'ורוד', category: 'clothing', status: 'open',
     createdAt: '2026-06-11T10:00:00',
   },
+
+  // ── Ramat Aviv G school ─────────────────────────────────────────────────────
+  {
+    id: 'lf-rag-1', schoolId: 'ramat-aviv-g', reportedByUserId: 'staff',
+    reportType: 'found', itemName: 'קלמר כחול',
+    description: 'קלמר בד כחול עם עפרון, סרגל ומחק בפנים', location: 'החצר',
+    date: '15/06', color: 'כחול', category: 'bags', status: 'open',
+    createdAt: '2026-06-15T09:00:00',
+  },
+  {
+    id: 'lf-rag-2', schoolId: 'ramat-aviv-g', reportedByUserId: 'staff',
+    reportType: 'found', itemName: 'בקבוק מים ירוק',
+    description: 'בקבוק מים ירוק עם מכסה לבן — ללא שם', location: 'הספרייה',
+    date: '14/06', color: 'ירוק', category: 'bottles-food', status: 'open',
+    createdAt: '2026-06-14T10:00:00',
+  },
+  {
+    id: 'lf-rag-3', schoolId: 'ramat-aviv-g', reportedByUserId: 'staff',
+    reportType: 'found', itemName: 'סווטשירט אפור',
+    description: 'סווטשירט אפור עם כיסים קדמיים, גודל לילד כיתה ג׳', location: 'אולם הספורט',
+    date: '13/06', color: 'אפור', category: 'clothing', status: 'open',
+    createdAt: '2026-06-13T13:00:00',
+  },
+  {
+    id: 'lf-rag-4', schoolId: 'ramat-aviv-g', reportedByUserId: 'staff',
+    reportType: 'found', itemName: 'ספר קריאה',
+    description: 'ספר קריאה לילדים — דף הפנים ריק, ללא שם כתוב', location: "ליד כיתה ג'2",
+    date: '14/06', color: 'כחול-לבן', category: 'books', status: 'open',
+    createdAt: '2026-06-14T08:30:00',
+  },
+  {
+    id: 'lf-rag-5', schoolId: 'ramat-aviv-g', reportedByUserId: 'user-rag-alma',
+    reportType: 'lost', itemName: 'קופסת אוכל',
+    description: 'קופסת אוכל כחולה עם מכסה שקוף ואטב פתיחה', location: 'שער בית הספר',
+    date: '12/06', color: 'כחול', category: 'bottles-food', status: 'open',
+    createdAt: '2026-06-12T14:00:00',
+  },
 ];
 
 // ─── DAILY INFO ────────────────────────────────────────────────────────────────
@@ -370,5 +569,12 @@ export const DAILY_INFO: DailyInfo[] = [
     homeworkDueToday: ['לצפות בסרטון על מחזור המים', 'לרשום 3 תצפיות'],
     reminder: 'להביא חולצה ישנה ליום האמנות ביום שלישי',
     upcomingEvent: 'סיור שכבתי לים ביום שני הבא',
+  },
+  {
+    classId: 'class-rag-g2',
+    itemsToBring: ['ספר עברית', 'מחברת כתיבה', 'קלמר', 'בגדי ספורט לשיעור ספורט'],
+    homeworkDueToday: ['לקרוא עמודים 20–22 בספר הקריאה', 'לסיים דף תרגול חשבון'],
+    reminder: 'להחזיר את ספר הספרייה עד יום רביעי — לפני שיעור הספרייה!',
+    upcomingEvent: 'שעת סיפור והחלפת ספרים בספריית בית הספר — יום שלישי הקרוב',
   },
 ];

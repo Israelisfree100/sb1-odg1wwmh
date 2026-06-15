@@ -47,8 +47,10 @@ function computeLessonStatuses(entries: TimetableEntry[]): LessonWithStatus[] {
   const now = new Date();
   const nowMinutes = now.getHours() * 60 + now.getMinutes();
 
-  // Find first lesson that hasn't started yet
-  const nextIdx = entries.findIndex((e) => toMinutes(e.startTime) > nowMinutes);
+  // "next" badge only applies to real lessons, not break slots
+  const nextIdx = entries.findIndex(
+    (e) => !e.isBreak && toMinutes(e.startTime) > nowMinutes,
+  );
 
   return entries.map((e, i) => {
     const start = toMinutes(e.startTime);
@@ -58,7 +60,7 @@ function computeLessonStatuses(entries: TimetableEntry[]): LessonWithStatus[] {
       status = 'ended';
     } else if (nowMinutes >= start) {
       status = 'now';
-    } else if (i === nextIdx) {
+    } else if (!e.isBreak && i === nextIdx) {
       status = 'next';
     } else {
       status = 'later';
@@ -210,7 +212,7 @@ export function DailyScheduleScreen({ activeUser, onBack, onLogout }: Props) {
             </div>
             <div className="text-left">
               <p className="text-sky-100 text-xs font-medium">שיעורים היום</p>
-              <p className="text-3xl font-bold">{todayLessons.length}</p>
+              <p className="text-3xl font-bold">{todayLessons.filter((l) => !l.isBreak).length}</p>
             </div>
           </div>
         </div>
@@ -251,10 +253,45 @@ export function DailyScheduleScreen({ activeUser, onBack, onLogout }: Props) {
               <p className="text-sm text-gray-400 mt-1">נתראה ביום הלימודים הבא!</p>
             </div>
           ) : (
-            <div className="space-y-3">
-              {todayLessons.map((lesson) => {
+            <div className="space-y-2">
+              {todayLessons.map((lesson, idx) => {
+                // ── Break card ─────────────────────────────────────────────
+                if (lesson.isBreak) {
+                  const isNow = lesson.status === 'now';
+                  const isBig = lesson.subject.includes('גדולה') || lesson.subject.includes('אוכל');
+                  return (
+                    <div
+                      key={lesson.id}
+                      className={`flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl border transition-all ${
+                        isNow
+                          ? 'bg-yellow-50 border-yellow-200 ring-1 ring-yellow-100'
+                          : lesson.status === 'ended'
+                          ? 'bg-gray-50 border-gray-100 opacity-55'
+                          : 'bg-slate-50 border-slate-100'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-base select-none shrink-0">
+                          {isBig ? '🍎' : '☕'}
+                        </span>
+                        <p className={`text-sm font-semibold truncate ${isNow ? 'text-yellow-800' : 'text-gray-500'}`}>
+                          {lesson.subject}
+                          {isNow && (
+                            <span className="mr-2 text-xs font-bold text-yellow-600 animate-pulse"> ● עכשיו</span>
+                          )}
+                        </p>
+                      </div>
+                      <p className="text-xs text-gray-400 tabular-nums shrink-0">
+                        {lesson.startTime}–{lesson.endTime}
+                      </p>
+                    </div>
+                  );
+                }
+
+                // ── Regular lesson card ────────────────────────────────────
                 const col = getColour(lesson.subject);
                 const isNow = lesson.status === 'now';
+                const lessonNum = todayLessons.slice(0, idx + 1).filter((e) => !e.isBreak).length;
                 return (
                   <div
                     key={lesson.id}
@@ -282,7 +319,7 @@ export function DailyScheduleScreen({ activeUser, onBack, onLogout }: Props) {
                         {lesson.room && (
                           <p className="text-xs text-gray-400 flex items-center gap-1 mt-1">
                             <MapPin className="w-3 h-3" />
-                            כיתה {lesson.room}
+                            {/^\d+$/.test(lesson.room) ? `כיתה ${lesson.room}` : lesson.room}
                           </p>
                         )}
                       </div>
@@ -298,7 +335,7 @@ export function DailyScheduleScreen({ activeUser, onBack, onLogout }: Props) {
                           עד {lesson.endTime}
                         </p>
                         <p className="text-xs text-gray-400 mt-0.5">
-                          שיעור {lesson.period}
+                          שיעור {lessonNum}
                         </p>
                       </div>
                     </div>
