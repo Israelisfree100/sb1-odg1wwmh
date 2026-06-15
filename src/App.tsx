@@ -9,6 +9,8 @@ import { AnnouncementsScreen } from './screens/AnnouncementsScreen';
 import { DailyScheduleScreen } from './screens/DailyScheduleScreen';
 import { AssignmentsScreen } from './screens/AssignmentsScreen';
 import { ClassMessagesScreen } from './screens/ClassMessagesScreen';
+import { LostFoundScreen } from './screens/LostFoundScreen';
+import { SmartAssistantScreen } from './screens/SmartAssistantScreen';
 import { loadSessionUser, clearSession } from './utils/auth';
 import type { AppScreen, PracticeMode, User } from './types';
 
@@ -74,6 +76,24 @@ function App() {
     case 'class-messages':
       return (
         <ClassMessagesScreen
+          activeUser={activeUser}
+          onBack={goHome}
+          onLogout={handleLogout}
+        />
+      );
+
+    case 'lost-found':
+      return (
+        <LostFoundScreen
+          activeUser={activeUser}
+          onBack={goHome}
+          onLogout={handleLogout}
+        />
+      );
+
+    case 'smart-assistant':
+      return (
+        <SmartAssistantScreen
           activeUser={activeUser}
           onBack={goHome}
           onLogout={handleLogout}

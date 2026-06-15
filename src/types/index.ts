@@ -5,6 +5,8 @@ export type AppScreen =
   | { id: 'daily-schedule' }
   | { id: 'assignments' }
   | { id: 'class-messages' }
+  | { id: 'lost-found' }
+  | { id: 'smart-assistant' }
   | { id: 'exam-assistant' }
   | { id: 'practice'; mode: PracticeMode; subject?: string }
   | { id: 'announcements' }
@@ -110,18 +112,31 @@ export interface Announcement {
   important: boolean;
 }
 
+// ─── Lost & Found ─────────────────────────────────────────────────────────────
+
+export type LostFoundCategory =
+  | 'writing'
+  | 'clothing'
+  | 'bags'
+  | 'bottles-food'
+  | 'books'
+  | 'other';
+
 export interface LostFoundItem {
   id: string;
   schoolId: string;
-  type: 'found' | 'lost';
+  classId?: string;
+  reportedByUserId: string;
+  reportType: 'found' | 'lost';
   itemName: string;
   description: string;
   location: string;
   date: string;
-  status: 'open' | 'claimed';
   color?: string;
-  classId?: string;
-  reportedBy?: string;
+  category: LostFoundCategory;
+  status: 'open' | 'claimed' | 'returned';
+  claimedByUserId?: string;
+  createdAt: string;
 }
 
 // ─── Class Messages ───────────────────────────────────────────────────────────
@@ -139,4 +154,13 @@ export interface ClassMessage {
   content: string;
   publishedAt: string;
   isImportant: boolean;
+}
+
+// ─── Smart Assistant chat ─────────────────────────────────────────────────────
+
+export interface ChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: number;
 }

@@ -257,14 +257,86 @@ export const ANNOUNCEMENTS: Announcement[] = [
 // ─── LOST & FOUND ─────────────────────────────────────────────────────────────
 
 export const LOST_FOUND_ITEMS: LostFoundItem[] = [
-  // shaked
-  { id: 'lf-s1', schoolId: 'shaked', type: 'found', itemName: 'מחברת כחולה', description: 'מחברת כתיבה כחולה עם שם שנמחק', location: 'חצר בית הספר', date: '14/06', status: 'open', color: 'כחול' },
-  { id: 'lf-s2', schoolId: 'shaked', type: 'found', itemName: 'קלמר אדום', description: 'קלמר בד אדום עם עפרונות וסרגל בפנים', location: "כיתה ג'1", date: '13/06', status: 'open', color: 'אדום' },
-  { id: 'lf-s3', schoolId: 'shaked', type: 'lost', itemName: 'ציידנית ירוקה', description: 'ציידנית ספורט ירוקה עם בקבוק מים', location: 'חדר ספורט', date: '12/06', status: 'open', color: 'ירוק', reportedBy: 'alma' },
-  // rakafot
-  { id: 'lf-r1', schoolId: 'rakafot', type: 'found', itemName: 'כובע בייסבול', description: 'כובע בייסבול אפור עם לוגו כחול', location: 'חצר בית הספר', date: '14/06', status: 'open', color: 'אפור' },
-  { id: 'lf-r2', schoolId: 'rakafot', type: 'lost', itemName: 'תיק ספורט', description: 'תיק ספורט שחור עם פסים לבנים', location: 'חדר הלבשה', date: '13/06', status: 'open', color: 'שחור', reportedBy: 'maya' },
-  { id: 'lf-r3', schoolId: 'rakafot', type: 'found', itemName: 'עפרון מכני', description: 'עפרון מכני כחול-לבן', location: 'ספרייה', date: '12/06', status: 'open', color: 'כחול-לבן' },
+  // ── Shaked school ───────────────────────────────────────────────────────────
+  {
+    id: 'lf-s1', schoolId: 'shaked', reportedByUserId: 'staff',
+    reportType: 'found', itemName: 'מחברת כחולה',
+    description: 'מחברת כתיבה כחולה עם שם שנמחק', location: 'חצר בית הספר',
+    date: '14/06', color: 'כחול', category: 'books', status: 'open',
+    createdAt: '2026-06-14T08:00:00',
+  },
+  {
+    id: 'lf-s2', schoolId: 'shaked', reportedByUserId: 'staff',
+    reportType: 'found', itemName: 'קלמר אדום',
+    description: 'קלמר בד אדום עם עפרונות וסרגל בפנים', location: "כיתה ג'1",
+    date: '13/06', color: 'אדום', category: 'bags', status: 'open',
+    createdAt: '2026-06-13T08:00:00',
+  },
+  {
+    id: 'lf-s3', schoolId: 'shaked', reportedByUserId: 'alma',
+    reportType: 'lost', itemName: 'ציידנית ירוקה',
+    description: 'ציידנית ספורט ירוקה עם בקבוק מים', location: 'חדר ספורט',
+    date: '12/06', color: 'ירוק', category: 'bags', status: 'open',
+    createdAt: '2026-06-12T10:00:00',
+  },
+  {
+    id: 'lf-s4', schoolId: 'shaked', reportedByUserId: 'staff',
+    reportType: 'found', itemName: 'בקבוק מים כחול',
+    description: 'בקבוק מים כחול עם מכסה שחור', location: 'חצר',
+    date: '13/06', color: 'כחול', category: 'bottles-food', status: 'open',
+    createdAt: '2026-06-13T09:00:00',
+  },
+  {
+    id: 'lf-s5', schoolId: 'shaked', reportedByUserId: 'noam',
+    reportType: 'lost', itemName: 'מעיל אפור',
+    description: 'מעיל אפור בהיר עם שני כיסים גדולים', location: 'מגרש הכדורסל',
+    date: '12/06', color: 'אפור', category: 'clothing', status: 'open',
+    createdAt: '2026-06-12T12:00:00',
+  },
+  {
+    id: 'lf-s6', schoolId: 'shaked', reportedByUserId: 'alma',
+    reportType: 'found', itemName: 'ספר עברית כיתה ג',
+    description: 'ספר לימוד עברית כיתה ג עם כיסוי ירוק', location: "כיתה ג'2",
+    date: '14/06', color: 'ירוק', category: 'books', status: 'open',
+    createdAt: '2026-06-14T11:00:00',
+  },
+
+  // ── Rakafot school ──────────────────────────────────────────────────────────
+  {
+    id: 'lf-r1', schoolId: 'rakafot', reportedByUserId: 'staff',
+    reportType: 'found', itemName: 'כובע בייסבול',
+    description: 'כובע בייסבול אפור עם לוגו כחול', location: 'חצר בית הספר',
+    date: '14/06', color: 'אפור', category: 'clothing', status: 'open',
+    createdAt: '2026-06-14T08:00:00',
+  },
+  {
+    id: 'lf-r2', schoolId: 'rakafot', reportedByUserId: 'maya',
+    reportType: 'lost', itemName: 'תיק ספורט שחור',
+    description: 'תיק ספורט שחור עם פסים לבנים', location: 'חדר הלבשה',
+    date: '13/06', color: 'שחור', category: 'bags', status: 'open',
+    createdAt: '2026-06-13T14:00:00',
+  },
+  {
+    id: 'lf-r3', schoolId: 'rakafot', reportedByUserId: 'staff',
+    reportType: 'found', itemName: 'עפרון מכני כחול-לבן',
+    description: 'עפרון מכני דק בצבע כחול-לבן', location: 'ספרייה',
+    date: '12/06', color: 'כחול-לבן', category: 'writing', status: 'open',
+    createdAt: '2026-06-12T09:00:00',
+  },
+  {
+    id: 'lf-r4', schoolId: 'rakafot', reportedByUserId: 'staff',
+    reportType: 'found', itemName: 'קופסת אוכל כתומה',
+    description: 'קופסת אוכל כתומה עם מכסה כחול', location: 'חדר האוכל',
+    date: '14/06', color: 'כתום', category: 'bottles-food', status: 'open',
+    createdAt: '2026-06-14T12:00:00',
+  },
+  {
+    id: 'lf-r5', schoolId: 'rakafot', reportedByUserId: 'maya',
+    reportType: 'lost', itemName: 'צעיף ורוד',
+    description: 'צעיף ורוד עם פסי לבן', location: 'חצר',
+    date: '11/06', color: 'ורוד', category: 'clothing', status: 'open',
+    createdAt: '2026-06-11T10:00:00',
+  },
 ];
 
 // ─── DAILY INFO ────────────────────────────────────────────────────────────────

@@ -25,7 +25,7 @@ import {
   getCompletedAssignmentIds,
   getNextExam,
   getRelevantAnnouncements,
-  getLostFoundItems,
+  getMergedLostFoundItems,
   getClassMessages,
   getReadMessageIds,
 } from '../utils/dataHelpers';
@@ -71,10 +71,12 @@ export function Dashboard({ activeUser, onNavigate, onLogout }: DashboardProps) 
     classMessages[0];
 
   // ── Lost & found ──────────────────────────────────────────────────────────
-  const lostFoundItems = getLostFoundItems(activeUser.schoolId);
-  const latestFound = lostFoundItems.find(
-    (i) => i.type === 'found' && i.status === 'open',
+  const lostFoundItems = getMergedLostFoundItems(activeUser.schoolId);
+  const openFoundItems = lostFoundItems.filter(
+    (i) => i.reportType === 'found' && i.status === 'open',
   );
+  const latestFound = openFoundItems[0];
+  const openLostFoundCount = lostFoundItems.filter((i) => i.status === 'open').length;
 
   // ── Reminder ──────────────────────────────────────────────────────────────
   let reminderValue = 'אין תזכורות מיוחדות להיום';
@@ -131,7 +133,10 @@ export function Dashboard({ activeUser, onNavigate, onLogout }: DashboardProps) 
     },
     {
       id: 'found',
-      label: 'פריט שנמצא לאחרונה',
+      label:
+        openLostFoundCount > 0
+          ? `${openLostFoundCount} פריטים פתוחים`
+          : 'אבדות ומציאות',
       value: latestFound ? latestFound.itemName : 'אין פריטים חדשים',
       icon: <Package className="w-5 h-5 text-orange-600" />,
       iconBg: 'bg-orange-100',
@@ -183,8 +188,8 @@ export function Dashboard({ activeUser, onNavigate, onLogout }: DashboardProps) 
       iconBg: 'bg-amber-100',
       cardBg: 'bg-amber-50',
       borderColor: 'border-amber-100',
-      badge: undefined as number | undefined,
-      screen: { id: 'placeholder', title: 'אבדות ומציאות' } as AppScreen,
+      badge: openLostFoundCount > 0 ? openLostFoundCount : undefined,
+      screen: { id: 'lost-found' } as AppScreen,
     },
     {
       id: 'smart-helper',
@@ -195,7 +200,7 @@ export function Dashboard({ activeUser, onNavigate, onLogout }: DashboardProps) 
       cardBg: 'bg-rose-50',
       borderColor: 'border-rose-100',
       badge: undefined as number | undefined,
-      screen: { id: 'placeholder', title: 'העוזר החכם' } as AppScreen,
+      screen: { id: 'smart-assistant' } as AppScreen,
     },
   ];
 
