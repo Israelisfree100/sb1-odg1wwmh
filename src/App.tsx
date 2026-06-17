@@ -4,6 +4,7 @@ import { Dashboard } from './screens/Dashboard';
 import { ExamAssistant } from './screens/ExamAssistant';
 import { PracticeSession } from './screens/PracticeSession';
 import { PlaceholderScreen } from './screens/PlaceholderScreen';
+import { RoleSelectionScreen } from './screens/RoleSelectionScreen';
 import { LoginScreen } from './screens/LoginScreen';
 import { AnnouncementsScreen } from './screens/AnnouncementsScreen';
 import { DailyScheduleScreen } from './screens/DailyScheduleScreen';
@@ -14,12 +15,23 @@ import { SmartAssistantScreen } from './screens/SmartAssistantScreen';
 import { AdminDashboard } from './screens/AdminDashboard';
 import { AdminAnnouncementsScreen } from './screens/AdminAnnouncementsScreen';
 import { AdminExamsScreen } from './screens/AdminExamsScreen';
+import { TeacherDashboard } from './screens/TeacherDashboard';
+import { ParentDashboard } from './screens/ParentDashboard';
 import { loadSessionUser, clearSession } from './utils/auth';
-import type { AppScreen, PracticeMode, User } from './types';
+import { getDashboardForRole, getAllowedScreenIds } from './utils/roleHelpers';
+import type { AppScreen, PracticeMode, User, UserRole } from './types';
+
+// ── Pre-login phase ──────────────────────────────────────────────────────────
+
+type PreLoginPhase =
+  | { id: 'role-selection' }
+  | { id: 'login'; selectedRole: UserRole };
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
 
 function initialScreen(user: User | null): AppScreen {
-  if (user?.role === 'school_admin') return { id: 'admin-dashboard' };
-  return { id: 'dashboard' };
+  if (!user) return { id: 'dashboard' };
+  return getDashboardForRole(user.role);
 }
 
 function App() {
@@ -29,6 +41,12 @@ function App() {
   const [screen, setScreen] = useState<AppScreen>(() =>
     initialScreen(loadSessionUser()),
   );
+  const [preLogin, setPreLogin] = useState<PreLoginPhase>({ id: 'role-selection' });
+
+  // ── Login & logout handlers ─────────────────────────────────────────────────
+  const handleRoleSelect = (role: UserRole) => {
+    setPreLogin({ id: 'login', selectedRole: role });
+  };
 
   const handleLogin = (user: User) => {
     setActiveUser(user);
@@ -38,64 +56,55 @@ function App() {
   const handleLogout = () => {
     clearSession();
     setActiveUser(null);
+    setPreLogin({ id: 'role-selection' });
     setScreen({ id: 'dashboard' });
   };
 
-  // ── Not logged in → show login screen ──────────────────────────────────────
+  // ── Not logged in — show role selection or login ────────────────────────────
   if (!activeUser) {
-    return <LoginScreen onLogin={handleLogin} />;
+    if (preLogin.id === 'role-selection') {
+      return <RoleSelectionScreen onSelectRole={handleRoleSelect} />;
+    }
+    return (
+      <LoginScreen
+        selectedRole={preLogin.selectedRole}
+        onLogin={handleLogin}
+        onBack={() => setPreLogin({ id: 'role-selection' })}
+      />
+    );
   }
 
   // ── Navigation helpers ──────────────────────────────────────────────────────
   const navigate = (s: AppScreen) => setScreen(s);
-  const goHome = () => {
-    setScreen(
-      activeUser.role === 'school_admin'
-        ? { id: 'admin-dashboard' }
-        : { id: 'dashboard' },
-    );
-  };
-  const goToExamAssistant = () => setScreen({ id: 'exam-assistant' });
+
+  const goHome = () => setScreen(initialScreen(activeUser));
+
   const goAdminHome = () => setScreen({ id: 'admin-dashboard' });
 
   const startPractice = (mode: PracticeMode, subject: string) =>
     setScreen({ id: 'practice', mode, subject });
 
-  // ── Guard: admins should stay on admin screens; students on student screens ──
-  const isAdmin = activeUser.role === 'school_admin';
-  const adminScreenIds: AppScreen['id'][] = [
-    'admin-dashboard',
-    'admin-announcements',
-    'admin-exams',
-  ];
-  const onAdminScreen = adminScreenIds.includes(screen.id);
+  const goToExamAssistant = () => setScreen({ id: 'exam-assistant' });
 
-  if (isAdmin && !onAdminScreen) {
-    // Admin accidentally ended up on a student screen — redirect to admin home
-    return (
-      <AdminDashboard
-        activeUser={activeUser}
-        onNavigate={navigate}
-        onLogout={handleLogout}
-      />
-    );
-  }
-
-  if (!isAdmin && onAdminScreen) {
-    // Student accidentally ended up on an admin screen — redirect to student home
-    return (
-      <Dashboard
-        activeUser={activeUser}
-        onNavigate={navigate}
-        onLogout={handleLogout}
-      />
-    );
+  // ── Route guard: redirect to role-appropriate home if on wrong screen ───────
+  const allowedIds = getAllowedScreenIds(activeUser.role);
+  if (!allowedIds.includes(screen.id)) {
+    // Silently redirect to the user's own home dashboard
+    const home = getDashboardForRole(activeUser.role);
+    if (screen.id !== home.id) {
+      setScreen(home);
+    }
   }
 
   // ── Screen router ───────────────────────────────────────────────────────────
   switch (screen.id) {
     // ── Admin screens ──────────────────────────────────────────────────────────
     case 'admin-dashboard':
+      if (activeUser.role !== 'school_admin') {
+        return (
+          <Dashboard activeUser={activeUser} onNavigate={navigate} onLogout={handleLogout} />
+        );
+      }
       return (
         <AdminDashboard
           activeUser={activeUser}
@@ -105,6 +114,11 @@ function App() {
       );
 
     case 'admin-announcements':
+      if (activeUser.role !== 'school_admin') {
+        return (
+          <Dashboard activeUser={activeUser} onNavigate={navigate} onLogout={handleLogout} />
+        );
+      }
       return (
         <AdminAnnouncementsScreen
           activeUser={activeUser}
@@ -114,10 +128,45 @@ function App() {
       );
 
     case 'admin-exams':
+      if (activeUser.role !== 'school_admin') {
+        return (
+          <Dashboard activeUser={activeUser} onNavigate={navigate} onLogout={handleLogout} />
+        );
+      }
       return (
         <AdminExamsScreen
           activeUser={activeUser}
           onBack={goAdminHome}
+          onLogout={handleLogout}
+        />
+      );
+
+    // ── Teacher screens ────────────────────────────────────────────────────────
+    case 'teacher-dashboard':
+      if (activeUser.role !== 'teacher') {
+        return (
+          <Dashboard activeUser={activeUser} onNavigate={navigate} onLogout={handleLogout} />
+        );
+      }
+      return (
+        <TeacherDashboard
+          activeUser={activeUser}
+          onNavigate={navigate}
+          onLogout={handleLogout}
+        />
+      );
+
+    // ── Parent screens ─────────────────────────────────────────────────────────
+    case 'parent-dashboard':
+      if (activeUser.role !== 'parent') {
+        return (
+          <Dashboard activeUser={activeUser} onNavigate={navigate} onLogout={handleLogout} />
+        );
+      }
+      return (
+        <ParentDashboard
+          activeUser={activeUser}
+          onNavigate={navigate}
           onLogout={handleLogout}
         />
       );
@@ -197,9 +246,7 @@ function App() {
       );
 
     case 'announcements':
-      return (
-        <AnnouncementsScreen activeUser={activeUser} onBack={goHome} />
-      );
+      return <AnnouncementsScreen activeUser={activeUser} onBack={goHome} />;
 
     case 'placeholder':
       return <PlaceholderScreen title={screen.title} onBack={goHome} />;

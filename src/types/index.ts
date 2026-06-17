@@ -13,7 +13,9 @@ export type AppScreen =
   | { id: 'placeholder'; title: string }
   | { id: 'admin-dashboard' }
   | { id: 'admin-announcements' }
-  | { id: 'admin-exams' };
+  | { id: 'admin-exams' }
+  | { id: 'teacher-dashboard' }
+  | { id: 'parent-dashboard' };
 
 export type PracticeMode = 'quick' | 'full' | 'by-topic';
 
@@ -56,7 +58,22 @@ export interface User {
   role: UserRole;
   fullName: string;
   firstName: string;
+  /** Student: enrolled class */
   classId?: string;
+  /** Student: grade label e.g. "ג'" */
+  grade?: string;
+  /** Teacher: unique teacher ID */
+  teacherId?: string;
+  /** Teacher: class IDs the teacher is assigned to teach */
+  classIds?: string[];
+  /** Teacher: subjects this teacher teaches */
+  subjects?: string[];
+  /** Teacher: homeroom class (if any) */
+  homeroomClassId?: string;
+  /** Parent: unique parent ID */
+  parentId?: string;
+  /** Parent: user IDs of linked children (same school only) */
+  childUserIds?: string[];
 }
 
 export interface ClassGroup {

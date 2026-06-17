@@ -35,6 +35,11 @@ export const TIMETABLE_ENTRIES: TimetableEntry[] = [
   { id: 'tt-ag2-42', schoolId: 'shaked', classId: 'shaked-g2', dayOfWeek: 4, period: 2, subject: 'חשבון', teacherName: 'רחל לוי', startTime: '08:50', endTime: '09:35' },
   { id: 'tt-ag2-43', schoolId: 'shaked', classId: 'shaked-g2', dayOfWeek: 4, period: 3, subject: 'מבחן חשבון', teacherName: 'רחל לוי', startTime: '09:40', endTime: '10:25', room: '101' },
 
+  // Wednesday — כישורי חיים with יעל כהן (teacher-shaked)
+  { id: 'tt-ag2-34', schoolId: 'shaked', classId: 'shaked-g2', dayOfWeek: 3, period: 4, subject: 'כישורי חיים', teacherName: 'יעל כהן', startTime: '10:35', endTime: '11:20', room: '102' },
+  // Thursday — כישורי חיים with יעל כהן
+  { id: 'tt-ag2-44', schoolId: 'shaked', classId: 'shaked-g2', dayOfWeek: 4, period: 4, subject: 'כישורי חיים', teacherName: 'יעל כהן', startTime: '10:35', endTime: '11:20', room: '102' },
+
   // ── Noam — shaked-g1 ──────────────────────────────────────────────────────
   // Monday
   { id: 'tt-ng1-11', schoolId: 'shaked', classId: 'shaked-g1', dayOfWeek: 1, period: 1, subject: 'עברית', teacherName: 'שרה כהן', startTime: '08:00', endTime: '08:45' },
@@ -43,15 +48,25 @@ export const TIMETABLE_ENTRIES: TimetableEntry[] = [
   { id: 'tt-ng1-14', schoolId: 'shaked', classId: 'shaked-g1', dayOfWeek: 1, period: 4, subject: 'אנגלית', teacherName: 'חנה רוזן', startTime: '10:45', endTime: '11:30' },
   { id: 'tt-ng1-15', schoolId: 'shaked', classId: 'shaked-g1', dayOfWeek: 1, period: 5, subject: 'אמנות', teacherName: 'מיכל דוד', startTime: '11:35', endTime: '12:20' },
   { id: 'tt-ng1-16', schoolId: 'shaked', classId: 'shaked-g1', dayOfWeek: 1, period: 6, subject: 'ספורט', teacherName: 'יוסי אברהם', startTime: '12:25', endTime: '13:10' },
+  // Wednesday — עברית + כישורי חיים with יעל כהן (teacher-shaked)
+  { id: 'tt-ng1-31', schoolId: 'shaked', classId: 'shaked-g1', dayOfWeek: 3, period: 1, subject: 'עברית', teacherName: 'יעל כהן', startTime: '08:00', endTime: '08:45', room: '102' },
+  { id: 'tt-ng1-32', schoolId: 'shaked', classId: 'shaked-g1', dayOfWeek: 3, period: 2, subject: 'חשבון', teacherName: 'יעקב לוי', startTime: '08:50', endTime: '09:35' },
+  { id: 'tt-ng1-33', schoolId: 'shaked', classId: 'shaked-g1', dayOfWeek: 3, period: 3, subject: 'מדעים', teacherName: 'אורית שפירא', startTime: '09:40', endTime: '10:25' },
+  { id: 'tt-ng1-34', schoolId: 'shaked', classId: 'shaked-g1', dayOfWeek: 3, period: 4, subject: 'כישורי חיים', teacherName: 'יעל כהן', startTime: '10:35', endTime: '11:20', room: '102' },
 
   // ── Maya — rakafot-g3 ─────────────────────────────────────────────────────
   // Monday
   { id: 'tt-mg3-11', schoolId: 'rakafot', classId: 'rakafot-g3', dayOfWeek: 1, period: 1, subject: 'מדעים', teacherName: 'מירי גרין', startTime: '08:00', endTime: '08:45' },
-  { id: 'tt-mg3-12', schoolId: 'rakafot', classId: 'rakafot-g3', dayOfWeek: 1, period: 2, subject: 'חשבון', teacherName: 'אבי כץ', startTime: '08:50', endTime: '09:35' },
+  { id: 'tt-mg3-12', schoolId: 'rakafot', classId: 'rakafot-g3', dayOfWeek: 1, period: 2, subject: 'חשבון', teacherName: 'מיכל לוי', startTime: '08:50', endTime: '09:35' },
   { id: 'tt-mg3-13', schoolId: 'rakafot', classId: 'rakafot-g3', dayOfWeek: 1, period: 3, subject: 'עברית', teacherName: 'נועה פרץ', startTime: '09:40', endTime: '10:25' },
   { id: 'tt-mg3-14', schoolId: 'rakafot', classId: 'rakafot-g3', dayOfWeek: 1, period: 4, subject: 'ספורט', teacherName: 'גיא נחום', startTime: '10:45', endTime: '11:30' },
   { id: 'tt-mg3-15', schoolId: 'rakafot', classId: 'rakafot-g3', dayOfWeek: 1, period: 5, subject: 'אנגלית', teacherName: 'ליאור מור', startTime: '11:35', endTime: '12:20' },
   { id: 'tt-mg3-16', schoolId: 'rakafot', classId: 'rakafot-g3', dayOfWeek: 1, period: 6, subject: 'אמנות', teacherName: 'רות בן-דוד', startTime: '12:25', endTime: '13:10' },
+  // Wednesday — מדעים + חשבון with מיכל לוי (teacher-rakafot)
+  { id: 'tt-mg3-31', schoolId: 'rakafot', classId: 'rakafot-g3', dayOfWeek: 3, period: 1, subject: 'חשבון', teacherName: 'מיכל לוי', startTime: '08:00', endTime: '08:45', room: 'כיתה ג׳3' },
+  { id: 'tt-mg3-32', schoolId: 'rakafot', classId: 'rakafot-g3', dayOfWeek: 3, period: 2, subject: 'עברית', teacherName: 'נועה פרץ', startTime: '08:50', endTime: '09:35' },
+  { id: 'tt-mg3-33', schoolId: 'rakafot', classId: 'rakafot-g3', dayOfWeek: 3, period: 3, subject: 'מדעים', teacherName: 'מיכל לוי', startTime: '09:40', endTime: '10:25', room: 'כיתה ג׳3' },
+  { id: 'tt-mg3-34', schoolId: 'rakafot', classId: 'rakafot-g3', dayOfWeek: 3, period: 4, subject: 'אנגלית', teacherName: 'ליאור מור', startTime: '10:45', endTime: '11:30' },
 
   // ── class-rag-g2 (Ramat Aviv G) ───────────────────────────────────────────
   // Bell schedule: 1=08:00-08:45, 2=08:45-09:30, 3=BIG BREAK 09:30-10:15,

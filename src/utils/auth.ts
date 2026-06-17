@@ -1,4 +1,4 @@
-import type { User } from '../types';
+import type { User, UserRole } from '../types';
 import { USERS } from '../data/schools';
 
 const SESSION_KEY = 'chaveri_session';
@@ -8,21 +8,28 @@ interface StoredSession {
   schoolId: string;
 }
 
-/** Returns the matching User or null if credentials are wrong / school mismatch. */
+/**
+ * Returns the matching User or null if credentials are wrong / school mismatch.
+ * If selectedRole is provided, the user's role must also match — otherwise null
+ * is returned to prevent cross-role login.
+ */
 export function login(
   schoolId: string,
   username: string,
   password: string,
+  selectedRole?: UserRole,
 ): User | null {
   const normalizedUsername = username.trim().toLowerCase();
-  return (
+  const user =
     USERS.find(
       (u) =>
         u.schoolId === schoolId &&
         u.username.toLowerCase() === normalizedUsername &&
         u.password === password,
-    ) ?? null
-  );
+    ) ?? null;
+  if (!user) return null;
+  if (selectedRole && user.role !== selectedRole) return null;
+  return user;
 }
 
 export function saveSession(user: User): void {
