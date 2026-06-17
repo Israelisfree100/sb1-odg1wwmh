@@ -399,6 +399,13 @@ export function TeacherDashboard({ activeUser, onNavigate, onLogout }: TeacherDa
               onClick={() => onNavigate({ id: 'teacher-announcement-requests' })}
             />
             <ActionCard
+              icon={<BellRing className="w-5 h-5 text-teal-600" />}
+              title="לוח מודעות לצוות"
+              description="הודעות הנהלה והודעות לצוות"
+              color="bg-teal-100"
+              onClick={() => onNavigate({ id: 'teacher-notice-board' })}
+            />
+            <ActionCard
               icon={<BookMarked className="w-5 h-5 text-amber-600" />}
               title="חומרי לימוד"
               description="ספריית משאבים ומצגות"

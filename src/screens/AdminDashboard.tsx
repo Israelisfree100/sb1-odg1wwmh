@@ -6,19 +6,23 @@ import {
   Users,
   Package,
   ShieldCheck,
-  Clock,
+  ClipboardList,
   LayoutDashboard,
   GraduationCap,
   CalendarClock,
   Layers,
   MessageCircle,
+  AlertTriangle,
 } from 'lucide-react';
 import type { User, AppScreen } from '../types';
 import { getSchool, getMergedLostFoundItems } from '../utils/dataHelpers';
 import { getAllAnnouncementsForAdmin } from '../services/announcementRepository';
 import { getAllExamsForAdmin } from '../services/examRepository';
+import { getAllAssignmentsForSchool } from '../services/assignmentRepository';
 import { getPendingCount } from '../services/teacherAnnouncementRequestRepository';
-import { CLASSES, USERS } from '../data/schools';
+import { getActiveUserCount } from '../services/userRepository';
+import { getActiveClassCount } from '../services/classRepository';
+import { getTimetableEntryCount } from '../services/timetableRepository';
 
 interface Props {
   activeUser: User;
@@ -108,13 +112,17 @@ export function AdminDashboard({ activeUser, onNavigate, onLogout }: Props) {
   ).length;
   const totalAnnCount = getAllAnnouncementsForAdmin(schoolId).length;
   const examCount = getAllExamsForAdmin(schoolId).length;
-  const classCount = CLASSES.filter((c) => c.schoolId === schoolId).length;
-  const studentCount = USERS.filter(
-    (u) => u.schoolId === schoolId && u.role === 'student',
-  ).length;
+  const classCount = getActiveClassCount(schoolId);
+  const studentCount = getActiveUserCount(schoolId, 'student');
+  const teacherCount = getActiveUserCount(schoolId, 'teacher');
+  const parentCount = getActiveUserCount(schoolId, 'parent');
   const openLFCount = getMergedLostFoundItems(schoolId).filter(
     (i) => i.status === 'open',
   ).length;
+  const assignments = getAllAssignmentsForSchool(schoolId);
+  const activeAssignments = assignments.length;
+  const urgentAssignments = assignments.filter((a) => a.priority === 'high').length;
+  const timetableCount = getTimetableEntryCount(schoolId);
   const pendingTeacherRequests = getPendingCount(schoolId);
 
   return (
@@ -180,37 +188,23 @@ export function AdminDashboard({ activeUser, onNavigate, onLogout }: Props) {
         )}
 
         {/* ── Stat widgets ── */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-          <StatCard
-            label="הודעות פעילות"
-            value={publishedCount}
-            icon={<Megaphone className="w-5 h-5 text-violet-600" />}
-            colour="bg-violet-50"
-          />
-          <StatCard
-            label="מבחנים קרובים"
-            value={examCount}
-            icon={<GraduationCap className="w-5 h-5 text-blue-600" />}
-            colour="bg-blue-50"
-          />
-          <StatCard
-            label="כיתות"
-            value={classCount}
-            icon={<Layers className="w-5 h-5 text-emerald-600" />}
-            colour="bg-emerald-50"
-          />
-          <StatCard
-            label="תלמידי דמו"
-            value={studentCount}
-            icon={<Users className="w-5 h-5 text-amber-600" />}
-            colour="bg-amber-50"
-          />
-          <StatCard
-            label="אבדות פתוחות"
-            value={openLFCount}
-            icon={<Package className="w-5 h-5 text-rose-600" />}
-            colour="bg-rose-50"
-          />
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+          <StatCard label="הודעות פעילות" value={publishedCount}
+            icon={<Megaphone className="w-5 h-5 text-violet-600" />} colour="bg-violet-50" />
+          <StatCard label="משימות פעילות" value={activeAssignments}
+            icon={<ClipboardList className="w-5 h-5 text-sky-600" />} colour="bg-sky-50" />
+          <StatCard label="משימות דחופות" value={urgentAssignments}
+            icon={<AlertTriangle className="w-5 h-5 text-rose-600" />} colour="bg-rose-50" />
+          <StatCard label="שיעורים במערכת" value={timetableCount}
+            icon={<CalendarClock className="w-5 h-5 text-indigo-600" />} colour="bg-indigo-50" />
+          <StatCard label="אבדות פתוחות" value={openLFCount}
+            icon={<Package className="w-5 h-5 text-amber-600" />} colour="bg-amber-50" />
+          <StatCard label="מבחנים קרובים" value={examCount}
+            icon={<GraduationCap className="w-5 h-5 text-blue-600" />} colour="bg-blue-50" />
+          <StatCard label="כיתות" value={classCount}
+            icon={<Layers className="w-5 h-5 text-emerald-600" />} colour="bg-emerald-50" />
+          <StatCard label="תלמידים פעילים" value={studentCount}
+            icon={<Users className="w-5 h-5 text-amber-600" />} colour="bg-amber-50" />
         </div>
 
         {/* ── Management cards ── */}
@@ -233,28 +227,30 @@ export function AdminDashboard({ activeUser, onNavigate, onLogout }: Props) {
               onClick={() => onNavigate({ id: 'admin-exams' })}
             />
             <MgmtCard
-              title="משימות — בקרוב"
-              description="ניהול שיעורי בית ומשימות"
-              icon={<BookOpen className="w-5 h-5 text-gray-400" />}
-              disabled
+              title="משימות ושיעורי בית"
+              description={`${activeAssignments} משימות — ${urgentAssignments} דחופות`}
+              icon={<BookOpen className="w-5 h-5 text-indigo-600" />}
+              badge={urgentAssignments}
+              onClick={() => onNavigate({ id: 'admin-assignments' })}
             />
             <MgmtCard
-              title="מערכת שעות — בקרוב"
-              description="עריכת מערכת שעות לכיתות"
-              icon={<CalendarClock className="w-5 h-5 text-gray-400" />}
-              disabled
+              title="מערכת שעות"
+              description={`${timetableCount} שיעורים במערכת`}
+              icon={<CalendarClock className="w-5 h-5 text-indigo-600" />}
+              onClick={() => onNavigate({ id: 'admin-timetable' })}
             />
             <MgmtCard
-              title="תלמידים וכיתות — בקרוב"
-              description="ניהול תלמידים, כיתות ומורים"
-              icon={<Users className="w-5 h-5 text-gray-400" />}
-              disabled
+              title="תלמידים וכיתות"
+              description={`${studentCount} תלמידים · ${classCount} כיתות · ${teacherCount} מורים`}
+              icon={<Users className="w-5 h-5 text-indigo-600" />}
+              onClick={() => onNavigate({ id: 'admin-users-classes' })}
             />
             <MgmtCard
-              title="אבדות ומציאות — בקרוב"
-              description="ניהול פריטי אבדות ומציאות"
-              icon={<Package className="w-5 h-5 text-gray-400" />}
-              disabled
+              title="אבדות ומציאות"
+              description={`${openLFCount} פריטים פתוחים`}
+              icon={<Package className="w-5 h-5 text-indigo-600" />}
+              badge={openLFCount}
+              onClick={() => onNavigate({ id: 'admin-lost-found' })}
             />
             <MgmtCard
               title="בקשות פרסום ממורים"
@@ -268,13 +264,35 @@ export function AdminDashboard({ activeUser, onNavigate, onLogout }: Props) {
           </div>
         </div>
 
-        {/* ── Info footer ── */}
+        {/* ── Users summary card ── */}
+        <div className="bg-white rounded-2xl border border-indigo-100 shadow-sm p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <Users className="w-5 h-5 text-indigo-600" />
+            <h2 className="text-sm font-bold text-gray-800">משתמשים במערכת</h2>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {[
+              { label: 'תלמידים', value: studentCount, color: 'text-amber-700', bg: 'bg-amber-50' },
+              { label: 'מורים', value: teacherCount, color: 'text-emerald-700', bg: 'bg-emerald-50' },
+              { label: 'הורים', value: parentCount, color: 'text-violet-700', bg: 'bg-violet-50' },
+              { label: 'כיתות', value: classCount, color: 'text-indigo-700', bg: 'bg-indigo-50' },
+            ].map((s) => (
+              <button key={s.label} onClick={() => onNavigate({ id: 'admin-users-classes' })}
+                className={`rounded-xl border border-gray-100 p-3 text-center hover:shadow-md transition-all ${s.bg}`}>
+                <p className={`text-xl font-extrabold ${s.color}`}>{s.value}</p>
+                <p className="text-xs text-gray-500 mt-0.5">{s.label}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* ── Secretary note ── */}
         <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-4 flex items-start gap-3">
-          <Clock className="w-4 h-4 text-indigo-500 mt-0.5 shrink-0" />
+          <LayoutDashboard className="w-4 h-4 text-indigo-500 mt-0.5 shrink-0" />
           <div>
-            <p className="text-sm font-semibold text-indigo-800">שלב ניהול ראשון</p>
+            <p className="text-sm font-semibold text-indigo-800">מודול מזכירות</p>
             <p className="text-xs text-indigo-600 mt-0.5">
-              מודולי ניהול נוספים יתווספו בשלבים הבאים: ניהול משימות, מערכת שעות, תלמידים וכיתות.
+              ניהול אבדות ומציאות, יצירת הודעות כלל-בית-ספריות ועדכון מערכת שעות זמינים עבורך כמנהל בית הספר.
             </p>
           </div>
         </div>

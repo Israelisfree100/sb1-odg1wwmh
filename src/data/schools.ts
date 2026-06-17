@@ -61,6 +61,19 @@ export const USERS: User[] = [
     fullName: 'עלמה כהן',
     firstName: 'עלמה',
     classId: 'class-rag-g2',
+    grade: "ג'",
+  },
+  // Second RAG student — for multi-child parent demo
+  {
+    id: 'user-rag-noam',
+    schoolId: 'ramat-aviv-g',
+    username: 'noam-rag',
+    password: '1234',
+    role: 'student',
+    fullName: 'נועם כהן',
+    firstName: 'נועם',
+    classId: 'class-rag-g2',
+    grade: "ג'",
   },
 
   // ── School admins ────────────────────────────────────────────────────────────
@@ -165,5 +178,17 @@ export const USERS: User[] = [
     firstName: 'דנה',
     parentId: 'pid-rag-dana',
     childUserIds: ['user-rag-alma'],
+  },
+  // Multi-child parent for demo purposes
+  {
+    id: 'parent-multi-rag',
+    schoolId: 'ramat-aviv-g',
+    username: 'parent-multi-rag',
+    password: '1234',
+    role: 'parent',
+    fullName: 'אורי כהן',
+    firstName: 'אורי',
+    parentId: 'pid-rag-uri',
+    childUserIds: ['user-rag-alma', 'user-rag-noam'],
   },
 ];

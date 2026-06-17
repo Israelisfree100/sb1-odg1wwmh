@@ -19,6 +19,7 @@ import { SCHOOLS, CLASSES } from '../data/schools';
 import {
   getPublishedAnnouncements,
 } from '../services/announcementRepository';
+import { canUserSeeAnnouncement } from './announcementVisibility';
 import { getExamsForClass } from '../services/examRepository';
 import { getAssignmentsForClass } from '../services/assignmentRepository';
 import { getClassMessagesForClass } from '../services/classMessageRepository';
@@ -139,21 +140,14 @@ export function getNextExam(classId: string, schoolId: string): Exam | undefined
 // ─── Announcements ────────────────────────────────────────────────────────────
 
 /**
- * Returns all published announcements relevant to the given student:
- * school-wide + matching grade + matching class.
- * Parents-only and unpublished announcements are excluded.
+ * Returns all published announcements visible to the given user.
+ * Uses the shared canUserSeeAnnouncement visibility helper.
+ * For parents, pass childClassId separately.
  */
-export function getRelevantAnnouncements(user: User): Announcement[] {
-  const cls = user.classId ? getClass(user.classId) : undefined;
-  return getPublishedAnnouncements(user.schoolId).filter((ann) => {
-    if (ann.audience === 'parents') return false;
-    if (ann.audience === 'school') return true;
-    if (ann.audience === 'grade' && cls && ann.targetGrade === cls.grade)
-      return true;
-    if (ann.audience === 'class' && ann.targetClassId === user.classId)
-      return true;
-    return false;
-  });
+export function getRelevantAnnouncements(user: User, childClassId?: string): Announcement[] {
+  return getPublishedAnnouncements(user.schoolId).filter((ann) =>
+    canUserSeeAnnouncement(user, ann, childClassId),
+  );
 }
 
 // ─── Class Messages ───────────────────────────────────────────────────────────

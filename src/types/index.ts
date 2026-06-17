@@ -22,7 +22,19 @@ export type AppScreen =
   | { id: 'teacher-class-messages' }
   | { id: 'teacher-exams' }
   | { id: 'teacher-announcement-requests' }
-  | { id: 'parent-dashboard' };
+  | { id: 'parent-dashboard' }
+  | { id: 'parent-child-timetable' }
+  | { id: 'parent-child-assignments' }
+  | { id: 'parent-child-exams' }
+  | { id: 'parent-class-messages' }
+  | { id: 'parent-school-announcements' }
+  | { id: 'parent-practice-progress' }
+  | { id: 'parent-notifications' }
+  | { id: 'admin-users-classes' }
+  | { id: 'admin-assignments' }
+  | { id: 'admin-timetable' }
+  | { id: 'admin-lost-found' }
+  | { id: 'teacher-notice-board' };
 
 export type PracticeMode = 'quick' | 'full' | 'by-topic';
 
@@ -81,6 +93,13 @@ export interface User {
   parentId?: string;
   /** Parent: user IDs of linked children (same school only) */
   childUserIds?: string[];
+  /**
+   * Account status. undefined = active (backward compat with all static mock users).
+   * Managed by admin; inactive users cannot log in.
+   */
+  isActive?: boolean;
+  /** Optional display label for temporary password — only stored immediately after creation/reset */
+  tempPasswordDisplay?: string;
 }
 
 export interface ClassGroup {
@@ -89,6 +108,12 @@ export interface ClassGroup {
   name: string;
   grade: string;
   teacherName: string;
+  /** Optional homeroom teacher user ID */
+  homeroomTeacherId?: string;
+  /** e.g. תשפ"ה */
+  schoolYear?: string;
+  /** undefined = active */
+  isActive?: boolean;
 }
 
 export interface TimetableEntry {
@@ -123,21 +148,56 @@ export interface Assignment {
   updatedAt?: string;
 }
 
+/** Legacy audience field — kept for backward compatibility. */
 export type AnnouncementAudience = 'school' | 'grade' | 'class' | 'parents';
+
+/**
+ * Extended audience role targeting.
+ * all_users = everyone at the school.
+ * students_and_parents = students + their parents.
+ */
+export type AnnouncementAudienceRole =
+  | 'students'
+  | 'parents'
+  | 'teachers'
+  | 'school_admin'
+  | 'staff'
+  | 'students_and_parents'
+  | 'all_users';
+
+/** Organizational scope for the announcement. */
+export type AnnouncementScopeType =
+  | 'whole_school'
+  | 'grade'
+  | 'class'
+  | 'specific_users';
 
 export interface Announcement {
   id: string;
   schoolId: string;
+  // ─── Legacy targeting (backward compat) ──────────────────────────────────
+  /** @deprecated Use audienceRoles + scopeType instead. Kept for compat. */
+  audience: AnnouncementAudience;
   targetGrade?: string;
   targetClassId?: string;
-  audience: AnnouncementAudience;
+  // ─── Extended targeting ───────────────────────────────────────────────────
+  audienceRoles?: AnnouncementAudienceRole[];
+  scopeType?: AnnouncementScopeType;
+  /** For class scope — may target multiple classes. */
+  targetClassIds?: string[];
+  targetUserIds?: string[];
+  // ─── Scheduling ──────────────────────────────────────────────────────────
+  publishAt?: string;   // ISO date string
+  expiresAt?: string;   // ISO date string — optional
+  // ─── Meta ────────────────────────────────────────────────────────────────
   title: string;
   content: string;
   date: string;
   author: string;
   important: boolean;
-  /** undefined or true = published (visible to students); false = draft (admin-only). */
   isPublished?: boolean;
+  createdByUserId?: string;
+  createdByRole?: string;
 }
 
 export interface Exam {
@@ -175,7 +235,9 @@ export interface LostFoundItem {
   date: string;
   color?: string;
   category: LostFoundCategory;
-  status: 'open' | 'claimed' | 'returned';
+  status: 'open' | 'claimed' | 'returned' | 'archived';
+  /** Optional: who or what entity reported the item */
+  reportingSource?: 'student' | 'teacher' | 'parent' | 'office' | 'staff';
   claimedByUserId?: string;
   createdAt: string;
 }
@@ -207,6 +269,8 @@ export interface TeacherAnnouncementRequest {
   schoolId: string;
   requestedByUserId: string;
   requestedByName: string;
+  /** Alias for requestedByName — used in admin display */
+  requestedBy?: string;
   title: string;
   content: string;
   requestedAudience: 'grade' | 'school' | 'parents';
@@ -216,8 +280,26 @@ export interface TeacherAnnouncementRequest {
   teacherNote?: string;
   status: AnnouncementRequestStatus;
   rejectionReason?: string;
+  /** Admin note added on approval or rejection */
+  adminNote?: string;
+  /** ID of the announcement created upon approval */
+  approvedAnnouncementId?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+// ─── Practice History ─────────────────────────────────────────────────────────
+
+export interface PracticeHistoryEntry {
+  id: string;
+  examId?: string;
+  subject: string;
+  completedAt: string;
+  totalQuestions: number;
+  correctAnswers: number;
+  percentage: number;
+  topics: string[];
+  mode: PracticeMode;
 }
 
 // ─── Smart Assistant chat ─────────────────────────────────────────────────────

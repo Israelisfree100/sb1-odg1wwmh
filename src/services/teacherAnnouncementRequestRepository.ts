@@ -63,3 +63,30 @@ export function deleteRequest(schoolId: string, requestId: string): void {
   const updated = loadRequests(schoolId).filter((r) => r.id !== requestId);
   saveAll(schoolId, updated);
 }
+
+/** Alias for getAllRequests — used by admin announcement screen. */
+export function getTeacherAnnouncementRequests(schoolId: string): TeacherAnnouncementRequest[] {
+  return loadRequests(schoolId).map((r) => ({ ...r, requestedBy: r.requestedByName }));
+}
+
+/** Approve a request and link the created announcement ID. */
+export function approveRequest(requestId: string, schoolId: string, announcementId: string): void {
+  const all = loadRequests(schoolId);
+  const updated = all.map((r) =>
+    r.id === requestId
+      ? { ...r, status: 'approved' as const, approvedAnnouncementId: announcementId, updatedAt: new Date().toISOString() }
+      : r,
+  );
+  saveAll(schoolId, updated);
+}
+
+/** Reject a request with an optional admin note. */
+export function rejectRequest(requestId: string, schoolId: string, adminNote?: string): void {
+  const all = loadRequests(schoolId);
+  const updated = all.map((r) =>
+    r.id === requestId
+      ? { ...r, status: 'rejected' as const, adminNote, updatedAt: new Date().toISOString() }
+      : r,
+  );
+  saveAll(schoolId, updated);
+}

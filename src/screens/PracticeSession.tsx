@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   ChevronRight,
   Lightbulb,
@@ -18,6 +18,7 @@ import {
   getQuestionsForMode,
   getQuestionsForTopic,
 } from '../data/questions';
+import { savePracticeEntry, generateHistoryId } from '../services/practiceHistoryRepository';
 
 // ─── types ────────────────────────────────────────────────────────────────────
 
@@ -26,6 +27,8 @@ interface PracticeSessionProps {
   /** Exam subject — if provided and not 'חשבון', shows a coming-soon screen. */
   subject?: string;
   onBack: () => void;
+  /** When provided, a safe practice summary is saved to practice_history_<studentUserId> on completion. */
+  studentUserId?: string;
 }
 
 type Phase = 'topic-select' | 'quiz' | 'results';
@@ -135,7 +138,7 @@ function PageShell({
 
 // ─── main component ────────────────────────────────────────────────────────────
 
-export function PracticeSession({ mode, subject, onBack }: PracticeSessionProps) {
+export function PracticeSession({ mode, subject, onBack, studentUserId }: PracticeSessionProps) {
   // All hooks must be called unconditionally before any early returns.
   const [phase, setPhase] = useState<Phase>(
     mode === 'by-topic' ? 'topic-select' : 'quiz',
@@ -149,6 +152,7 @@ export function PracticeSession({ mode, subject, onBack }: PracticeSessionProps)
   const [isAnswered, setIsAnswered] = useState(false);
   const [showHint, setShowHint] = useState(false);
   const [correctCount, setCorrectCount] = useState(0);
+  const historySaved = useRef(false);
 
   const totalQuestions = questions.length;
   const currentQuestion = questions[currentIndex];
@@ -270,6 +274,7 @@ export function PracticeSession({ mode, subject, onBack }: PracticeSessionProps)
     setIsAnswered(false);
     setShowHint(false);
     setCorrectCount(0);
+    historySaved.current = false;
     setPhase('quiz');
   };
 
@@ -365,6 +370,28 @@ export function PracticeSession({ mode, subject, onBack }: PracticeSessionProps)
 
   const handleNext = () => {
     if (currentIndex + 1 >= totalQuestions) {
+      const finalCorrect = isAnswered && selectedOption === currentQuestion?.correctIndex
+        ? correctCount + 1
+        : correctCount;
+      // Save practice history (safe summary only, no individual answers)
+      if (studentUserId && !historySaved.current) {
+        historySaved.current = true;
+        const topics = Array.from(new Set(questions.map((q) => {
+          if (q.topic === 'multiplication') return 'כפל עד 10';
+          if (q.topic === 'division') return 'חילוק בסיסי';
+          return 'בעיות מילוליות';
+        })));
+        savePracticeEntry(studentUserId, {
+          id: generateHistoryId(),
+          subject: subject ?? 'חשבון',
+          completedAt: new Date().toISOString(),
+          totalQuestions,
+          correctAnswers: finalCorrect,
+          percentage: Math.round((finalCorrect / totalQuestions) * 100),
+          topics,
+          mode,
+        });
+      }
       setPhase('results');
     } else {
       setCurrentIndex((i) => i + 1);

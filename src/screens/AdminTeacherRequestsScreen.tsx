@@ -1,10 +1,13 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import {
-  ChevronRight, LogOut, Check, X, Megaphone,
+  ChevronRight, LogOut, Check, X, Megaphone, AlertTriangle,
 } from 'lucide-react';
-import type { User, TeacherAnnouncementRequest, AnnouncementRequestStatus } from '../types';
+import type {
+  User, TeacherAnnouncementRequest, AnnouncementRequestStatus,
+  Announcement, AnnouncementAudienceRole, AnnouncementScopeType,
+} from '../types';
 import { getSchool, getInitials } from '../utils/dataHelpers';
-import { getAllRequests, saveRequest } from '../services/teacherAnnouncementRequestRepository';
+import { getAllRequests, approveRequest, rejectRequest } from '../services/teacherAnnouncementRequestRepository';
 import { saveAnnouncement, generateAnnouncementId } from '../services/announcementRepository';
 
 interface Props { activeUser: User; onBack: () => void; onLogout: () => void; }
@@ -26,6 +29,28 @@ const AUDIENCE_LABELS: Record<string, string> = {
   school: 'כל בית הספר',
   parents: 'הורים',
 };
+
+/** Normalises a teacher request's legacy audience into the new targeting model. */
+function normalizeRequestAudience(req: TeacherAnnouncementRequest): {
+  audienceRoles: AnnouncementAudienceRole[];
+  scopeType: AnnouncementScopeType;
+} {
+  switch (req.requestedAudience) {
+    case 'parents':
+      return { audienceRoles: ['parents'], scopeType: 'whole_school' };
+    case 'grade':
+      return { audienceRoles: ['students', 'parents'], scopeType: 'grade' };
+    case 'school':
+    default:
+      return { audienceRoles: ['all_users'], scopeType: 'whole_school' };
+  }
+}
+
+/** Formats today as DD/MM for the announcement date field. */
+function todayDisplay(): string {
+  const d = new Date();
+  return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
+}
 
 function ConfirmModal({
   title, children, onClose,
@@ -50,10 +75,11 @@ export function AdminTeacherRequestsScreen({ activeUser, onBack, onLogout }: Pro
     getAllRequests(activeUser.schoolId),
   );
   const [actionReq, setActionReq] = useState<TeacherAnnouncementRequest | null>(null);
-  const [actionType, setActionType] = useState<'approve' | 'reject' | 'edit' | null>(null);
+  const [actionType, setActionType] = useState<'approve' | 'reject' | null>(null);
   const [rejectReason, setRejectReason] = useState('');
   const [editContent, setEditContent] = useState('');
   const [success, setSuccess] = useState('');
+  const [error, setError] = useState('');
   const [filterStatus, setFilterStatus] = useState<AnnouncementRequestStatus | ''>('');
 
   const school = useMemo(() => getSchool(activeUser.schoolId), [activeUser.schoolId]);
@@ -63,10 +89,8 @@ export function AdminTeacherRequestsScreen({ activeUser, onBack, onLogout }: Pro
     setRequests(getAllRequests(activeUser.schoolId));
   }, [activeUser.schoolId]);
 
-  const showMsg = (msg: string) => {
-    setSuccess(msg);
-    setTimeout(() => setSuccess(''), 3500);
-  };
+  const showMsg = (msg: string) => { setSuccess(msg); setTimeout(() => setSuccess(''), 3500); };
+  const showError = (msg: string) => { setError(msg); setTimeout(() => setError(''), 4000); };
 
   const visible = useMemo(() =>
     requests.filter((r) => !filterStatus || r.status === filterStatus),
@@ -75,62 +99,90 @@ export function AdminTeacherRequestsScreen({ activeUser, onBack, onLogout }: Pro
   const pendingCount = useMemo(() => requests.filter((r) => r.status === 'pending').length, [requests]);
 
   const openApprove = (r: TeacherAnnouncementRequest) => {
+    if (r.status !== 'pending') { showError('ניתן לאשר רק בקשות בסטטוס ממתין'); return; }
+    if (r.schoolId !== activeUser.schoolId) { showError('שגיאה: הבקשה שייכת לבית ספר אחר'); return; }
     setActionReq(r);
     setEditContent(r.content);
+    setError('');
     setActionType('approve');
   };
 
   const openReject = (r: TeacherAnnouncementRequest) => {
+    if (r.status !== 'pending') { showError('ניתן לדחות רק בקשות בסטטוס ממתין'); return; }
     setActionReq(r);
     setRejectReason('');
+    setError('');
     setActionType('reject');
   };
 
   const handleApprove = () => {
     if (!actionReq) return;
-    const now = new Date().toISOString();
 
-    // Map teacher audience to announcement audience type
-    const annAudience: 'school' | 'grade' | 'parents' = actionReq.requestedAudience;
+    // Pre-flight validations
+    if (activeUser.role !== 'school_admin') {
+      showError('רק מנהל בית ספר רשאי לאשר בקשות');
+      return;
+    }
+    if (actionReq.schoolId !== activeUser.schoolId) {
+      showError('שגיאה: אין הרשאה לאשר בקשה משייכת לבית ספר אחר');
+      return;
+    }
+    if (actionReq.status !== 'pending') {
+      showError(actionReq.status === 'approved' ? 'הבקשה כבר אושרה' : 'הבקשה כבר נדחתה');
+      closeModal();
+      return;
+    }
 
-    const ann = {
+    const content = editContent.trim() || actionReq.content;
+    if (!content) {
+      showError('לא ניתן לאשר הודעה ללא תוכן');
+      return;
+    }
+    if (actionReq.requestedAudience === 'grade' && !actionReq.targetGrade) {
+      showError('בקשה לשכבה חסרת שדה שכבה — לא ניתן לפרסם ללא שכבת יעד');
+      return;
+    }
+
+    // Map legacy request audience → new targeting model
+    const { audienceRoles, scopeType } = normalizeRequestAudience(actionReq);
+
+    const ann: Announcement = {
       id: generateAnnouncementId(),
       schoolId: actionReq.schoolId,
-      audience: annAudience,
-      targetGrade: actionReq.targetGrade,
+      // Legacy field for backward compatibility
+      audience: actionReq.requestedAudience === 'parents' ? 'parents'
+        : actionReq.requestedAudience === 'grade' ? 'grade' : 'school',
+      targetGrade: scopeType === 'grade' ? actionReq.targetGrade : undefined,
+      // Extended targeting
+      audienceRoles,
+      scopeType,
       title: actionReq.title,
-      content: editContent.trim() || actionReq.content,
-      date: now.split('T')[0],
-      author: `${actionReq.requestedByName} (אושר על ידי הנהלת בית הספר)`,
+      content,
+      date: todayDisplay(),
+      author: `${actionReq.requestedByName} (אושר ע"י הנהלת בית הספר)`,
       important: actionReq.important,
       isPublished: true,
+      createdByUserId: activeUser.id,
+      createdByRole: 'school_admin',
     };
-    saveAnnouncement(actionReq.schoolId, ann);
 
-    const updated: TeacherAnnouncementRequest = {
-      ...actionReq,
-      status: 'approved',
-      updatedAt: now,
-    };
-    saveRequest(updated);
+    saveAnnouncement(actionReq.schoolId, ann);
+    approveRequest(actionReq.id, actionReq.schoolId, ann.id);
     refresh();
-    setActionReq(null);
-    setActionType(null);
+    closeModal();
     showMsg('הבקשה אושרה — ההודעה פורסמה לקהל היעד');
   };
 
   const handleReject = () => {
     if (!actionReq) return;
-    const updated: TeacherAnnouncementRequest = {
-      ...actionReq,
-      status: 'rejected',
-      rejectionReason: rejectReason.trim() || undefined,
-      updatedAt: new Date().toISOString(),
-    };
-    saveRequest(updated);
+    if (actionReq.status !== 'pending') {
+      showError('הבקשה כבר טופלה');
+      closeModal();
+      return;
+    }
+    rejectRequest(actionReq.id, actionReq.schoolId, rejectReason.trim() || undefined);
     refresh();
-    setActionReq(null);
-    setActionType(null);
+    closeModal();
     showMsg('הבקשה נדחתה');
   };
 
@@ -139,6 +191,7 @@ export function AdminTeacherRequestsScreen({ activeUser, onBack, onLogout }: Pro
     setActionType(null);
     setRejectReason('');
     setEditContent('');
+    setError('');
   };
 
   return (
@@ -178,6 +231,11 @@ export function AdminTeacherRequestsScreen({ activeUser, onBack, onLogout }: Pro
         {success && (
           <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-2.5 flex items-center gap-2 text-emerald-700 text-sm">
             <Check className="w-4 h-4" /> {success}
+          </div>
+        )}
+        {error && (
+          <div className="bg-rose-50 border border-rose-200 rounded-xl px-4 py-2.5 flex items-center gap-2 text-rose-700 text-sm">
+            <AlertTriangle className="w-4 h-4" /> {error}
           </div>
         )}
 

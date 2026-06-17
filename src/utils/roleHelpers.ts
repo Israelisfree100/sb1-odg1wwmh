@@ -57,16 +57,21 @@ export function getAllowedScreenIds(role: UserRole): AppScreen['id'][] {
     case 'school_admin':
       return [
         'admin-dashboard', 'admin-announcements', 'admin-exams',
-        'admin-teacher-announcement-requests', 'placeholder',
+        'admin-teacher-announcement-requests', 'admin-users-classes',
+        'admin-assignments', 'admin-timetable', 'admin-lost-found', 'placeholder',
       ];
     case 'teacher':
       return [
         'teacher-dashboard', 'teacher-classes', 'teacher-class-detail',
         'teacher-assignments', 'teacher-class-messages', 'teacher-exams',
-        'teacher-announcement-requests', 'placeholder',
+        'teacher-announcement-requests', 'teacher-notice-board', 'placeholder',
       ];
     case 'parent':
-      return ['parent-dashboard', 'placeholder'];
+      return [
+        'parent-dashboard', 'parent-child-timetable', 'parent-child-assignments',
+        'parent-child-exams', 'parent-class-messages', 'parent-school-announcements',
+        'parent-practice-progress', 'parent-notifications', 'placeholder',
+      ];
     case 'student':
       return [
         'dashboard', 'daily-schedule', 'assignments', 'class-messages',

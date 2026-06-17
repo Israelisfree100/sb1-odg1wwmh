@@ -16,13 +16,25 @@ import { AdminDashboard } from './screens/AdminDashboard';
 import { AdminAnnouncementsScreen } from './screens/AdminAnnouncementsScreen';
 import { AdminExamsScreen } from './screens/AdminExamsScreen';
 import { AdminTeacherRequestsScreen } from './screens/AdminTeacherRequestsScreen';
+import { AdminUsersClassesScreen } from './screens/AdminUsersClassesScreen';
+import { AdminAssignmentsScreen } from './screens/AdminAssignmentsScreen';
+import { AdminTimetableScreen } from './screens/AdminTimetableScreen';
+import { AdminLostFoundScreen } from './screens/AdminLostFoundScreen';
 import { TeacherDashboard } from './screens/TeacherDashboard';
+import { TeacherNoticeBoardScreen } from './screens/TeacherNoticeBoardScreen';
 import { TeacherClassesScreen, TeacherClassDetailScreen } from './screens/TeacherClassesScreen';
 import { TeacherAssignmentsScreen } from './screens/TeacherAssignmentsScreen';
 import { TeacherClassMessagesScreen } from './screens/TeacherClassMessagesScreen';
 import { TeacherExamsScreen } from './screens/TeacherExamsScreen';
 import { TeacherAnnouncementRequestsScreen } from './screens/TeacherAnnouncementRequestsScreen';
 import { ParentDashboard } from './screens/ParentDashboard';
+import { ParentChildTimetableScreen } from './screens/ParentChildTimetableScreen';
+import { ParentChildAssignmentsScreen } from './screens/ParentChildAssignmentsScreen';
+import { ParentChildExamsScreen } from './screens/ParentChildExamsScreen';
+import { ParentClassMessagesScreen } from './screens/ParentClassMessagesScreen';
+import { ParentSchoolAnnouncementsScreen } from './screens/ParentSchoolAnnouncementsScreen';
+import { ParentPracticeProgressScreen } from './screens/ParentPracticeProgressScreen';
+import { ParentNotificationsScreen } from './screens/ParentNotificationsScreen';
 import { loadSessionUser, clearSession } from './utils/auth';
 import { getDashboardForRole, getAllowedScreenIds } from './utils/roleHelpers';
 import type { AppScreen, PracticeMode, User, UserRole } from './types';
@@ -161,6 +173,52 @@ function App() {
         />
       );
 
+    case 'admin-users-classes':
+      if (activeUser.role !== 'school_admin') {
+        return <Dashboard activeUser={activeUser} onNavigate={navigate} onLogout={handleLogout} />;
+      }
+      return (
+        <AdminUsersClassesScreen
+          activeUser={activeUser}
+          onBack={goAdminHome}
+          onNavigate={navigate}
+          onLogout={handleLogout}
+        />
+      );
+
+    case 'admin-assignments':
+      if (activeUser.role !== 'school_admin') return <Dashboard activeUser={activeUser} onNavigate={navigate} onLogout={handleLogout} />;
+      return (
+        <AdminAssignmentsScreen
+          activeUser={activeUser}
+          onBack={goAdminHome}
+          onNavigate={navigate}
+          onLogout={handleLogout}
+        />
+      );
+
+    case 'admin-timetable':
+      if (activeUser.role !== 'school_admin') return <Dashboard activeUser={activeUser} onNavigate={navigate} onLogout={handleLogout} />;
+      return (
+        <AdminTimetableScreen
+          activeUser={activeUser}
+          onBack={goAdminHome}
+          onNavigate={navigate}
+          onLogout={handleLogout}
+        />
+      );
+
+    case 'admin-lost-found':
+      if (activeUser.role !== 'school_admin') return <Dashboard activeUser={activeUser} onNavigate={navigate} onLogout={handleLogout} />;
+      return (
+        <AdminLostFoundScreen
+          activeUser={activeUser}
+          onBack={goAdminHome}
+          onNavigate={navigate}
+          onLogout={handleLogout}
+        />
+      );
+
     // ── Teacher screens ────────────────────────────────────────────────────────
     case 'teacher-dashboard':
       if (activeUser.role !== 'teacher') {
@@ -251,6 +309,19 @@ function App() {
         />
       );
 
+    case 'teacher-notice-board':
+      if (activeUser.role !== 'teacher') {
+        return <Dashboard activeUser={activeUser} onNavigate={navigate} onLogout={handleLogout} />;
+      }
+      return (
+        <TeacherNoticeBoardScreen
+          activeUser={activeUser}
+          onBack={() => setScreen({ id: 'teacher-dashboard' })}
+          onNavigate={navigate}
+          onLogout={handleLogout}
+        />
+      );
+
     // ── Parent screens ─────────────────────────────────────────────────────────
     case 'parent-dashboard':
       if (activeUser.role !== 'parent') {
@@ -261,6 +332,84 @@ function App() {
       return (
         <ParentDashboard
           activeUser={activeUser}
+          onNavigate={navigate}
+          onLogout={handleLogout}
+        />
+      );
+
+    // ── Parent detail screens ──────────────────────────────────────────────────
+    case 'parent-child-timetable':
+      if (activeUser.role !== 'parent') return <Dashboard activeUser={activeUser} onNavigate={navigate} onLogout={handleLogout} />;
+      return (
+        <ParentChildTimetableScreen
+          activeUser={activeUser}
+          onBack={() => navigate({ id: 'parent-dashboard' })}
+          onNavigate={navigate}
+          onLogout={handleLogout}
+        />
+      );
+
+    case 'parent-child-assignments':
+      if (activeUser.role !== 'parent') return <Dashboard activeUser={activeUser} onNavigate={navigate} onLogout={handleLogout} />;
+      return (
+        <ParentChildAssignmentsScreen
+          activeUser={activeUser}
+          onBack={() => navigate({ id: 'parent-dashboard' })}
+          onNavigate={navigate}
+          onLogout={handleLogout}
+        />
+      );
+
+    case 'parent-child-exams':
+      if (activeUser.role !== 'parent') return <Dashboard activeUser={activeUser} onNavigate={navigate} onLogout={handleLogout} />;
+      return (
+        <ParentChildExamsScreen
+          activeUser={activeUser}
+          onBack={() => navigate({ id: 'parent-dashboard' })}
+          onNavigate={navigate}
+          onLogout={handleLogout}
+        />
+      );
+
+    case 'parent-class-messages':
+      if (activeUser.role !== 'parent') return <Dashboard activeUser={activeUser} onNavigate={navigate} onLogout={handleLogout} />;
+      return (
+        <ParentClassMessagesScreen
+          activeUser={activeUser}
+          onBack={() => navigate({ id: 'parent-dashboard' })}
+          onNavigate={navigate}
+          onLogout={handleLogout}
+        />
+      );
+
+    case 'parent-school-announcements':
+      if (activeUser.role !== 'parent') return <Dashboard activeUser={activeUser} onNavigate={navigate} onLogout={handleLogout} />;
+      return (
+        <ParentSchoolAnnouncementsScreen
+          activeUser={activeUser}
+          onBack={() => navigate({ id: 'parent-dashboard' })}
+          onNavigate={navigate}
+          onLogout={handleLogout}
+        />
+      );
+
+    case 'parent-practice-progress':
+      if (activeUser.role !== 'parent') return <Dashboard activeUser={activeUser} onNavigate={navigate} onLogout={handleLogout} />;
+      return (
+        <ParentPracticeProgressScreen
+          activeUser={activeUser}
+          onBack={() => navigate({ id: 'parent-dashboard' })}
+          onNavigate={navigate}
+          onLogout={handleLogout}
+        />
+      );
+
+    case 'parent-notifications':
+      if (activeUser.role !== 'parent') return <Dashboard activeUser={activeUser} onNavigate={navigate} onLogout={handleLogout} />;
+      return (
+        <ParentNotificationsScreen
+          activeUser={activeUser}
+          onBack={() => navigate({ id: 'parent-dashboard' })}
           onNavigate={navigate}
           onLogout={handleLogout}
         />
@@ -337,6 +486,7 @@ function App() {
           mode={screen.mode}
           subject={screen.subject}
           onBack={goToExamAssistant}
+          studentUserId={activeUser.role === 'student' ? activeUser.id : undefined}
         />
       );
 
