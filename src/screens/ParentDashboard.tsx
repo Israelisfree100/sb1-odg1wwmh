@@ -82,13 +82,19 @@ export function ParentDashboard({ activeUser, onNavigate, onLogout }: ParentDash
   const school = useMemo(() => getSchool(activeUser.schoolId), [activeUser.schoolId]);
   const children = useMemo(() => getParentChildren(activeUser), [activeUser]);
 
+  // Ensure selectedChildId is always a valid linked child ID
   const [selectedChildId, setSelectedChildId] = useState<string>(
     () => children[0]?.id ?? '',
   );
 
+  // If stored ID is no longer in the linked list (e.g. stale session), fall back to first child
+  const validChildId = children.some((c) => c.id === selectedChildId)
+    ? selectedChildId
+    : (children[0]?.id ?? '');
+
   const snapshot = useMemo(
-    () => (selectedChildId ? getParentSelectedChildData(activeUser, selectedChildId) : null),
-    [activeUser, selectedChildId],
+    () => (validChildId ? getParentSelectedChildData(activeUser, validChildId) : null),
+    [activeUser, validChildId],
   );
 
   const initials = getInitials(activeUser.fullName);
@@ -180,7 +186,7 @@ export function ParentDashboard({ activeUser, onNavigate, onLogout }: ParentDash
                 <div className="relative">
                   <select
                     id="child-select"
-                    value={selectedChildId}
+                    value={validChildId}
                     onChange={(e) => setSelectedChildId(e.target.value)}
                     className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-white appearance-none focus:outline-none focus:ring-2 focus:ring-violet-400 text-gray-800"
                   >

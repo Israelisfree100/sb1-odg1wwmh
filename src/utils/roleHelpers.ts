@@ -4,7 +4,7 @@ import { TIMETABLE_ENTRIES } from '../data/mockData';
 import { getExamsForClass } from '../services/examRepository';
 import { getPublishedAnnouncements } from '../services/announcementRepository';
 import { getAssignmentsForClass, getAllAssignmentsForSchool } from '../services/assignmentRepository';
-import { getAllMessagesForSchool } from '../services/classMessageRepository';
+import { getAllMessagesForSchool, getClassMessagesForClass } from '../services/classMessageRepository';
 import {
   getCompletedAssignmentIds,
   getClass,
@@ -189,7 +189,7 @@ export function getParentSelectedChildData(
   });
 
   const classMessages = child.classId
-    ? CLASS_MESSAGES.filter((m) => m.classId === child.classId)
+    ? getClassMessagesForClass(child.classId)
     : [];
 
   return {
