@@ -11,11 +11,13 @@ import {
   GraduationCap,
   CalendarClock,
   Layers,
+  MessageCircle,
 } from 'lucide-react';
 import type { User, AppScreen } from '../types';
 import { getSchool, getMergedLostFoundItems } from '../utils/dataHelpers';
 import { getAllAnnouncementsForAdmin } from '../services/announcementRepository';
 import { getAllExamsForAdmin } from '../services/examRepository';
+import { getPendingCount } from '../services/teacherAnnouncementRequestRepository';
 import { CLASSES, USERS } from '../data/schools';
 
 interface Props {
@@ -113,6 +115,7 @@ export function AdminDashboard({ activeUser, onNavigate, onLogout }: Props) {
   const openLFCount = getMergedLostFoundItems(schoolId).filter(
     (i) => i.status === 'open',
   ).length;
+  const pendingTeacherRequests = getPendingCount(schoolId);
 
   return (
     <div dir="rtl" className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50">
@@ -154,6 +157,27 @@ export function AdminDashboard({ activeUser, onNavigate, onLogout }: Props) {
           </div>
           <p className="text-sm text-gray-500">{school?.fullName ?? school?.name}</p>
         </div>
+
+        {/* ── Teacher requests banner ── */}
+        {pendingTeacherRequests > 0 && (
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5">
+              <MessageCircle className="w-5 h-5 text-amber-600 flex-shrink-0" />
+              <div>
+                <p className="text-sm font-bold text-amber-800">
+                  {pendingTeacherRequests} בקשות פרסום ממורים ממתינות לאישורך
+                </p>
+                <p className="text-xs text-amber-600">בקשות שלא אושרו לא מוצגות לתלמידים</p>
+              </div>
+            </div>
+            <button
+              onClick={() => onNavigate({ id: 'admin-teacher-announcement-requests' })}
+              className="bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-3 py-2 rounded-xl transition-colors flex-shrink-0"
+            >
+              לטיפול
+            </button>
+          </div>
+        )}
 
         {/* ── Stat widgets ── */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
@@ -231,6 +255,15 @@ export function AdminDashboard({ activeUser, onNavigate, onLogout }: Props) {
               description="ניהול פריטי אבדות ומציאות"
               icon={<Package className="w-5 h-5 text-gray-400" />}
               disabled
+            />
+            <MgmtCard
+              title="בקשות פרסום ממורים"
+              description={pendingTeacherRequests > 0
+                ? `${pendingTeacherRequests} בקשות ממתינות לאישור`
+                : 'בקשות מורים לפרסום כלל-בית-ספרי'}
+              icon={<MessageCircle className="w-5 h-5 text-indigo-600" />}
+              badge={pendingTeacherRequests > 0 ? pendingTeacherRequests : undefined}
+              onClick={() => onNavigate({ id: 'admin-teacher-announcement-requests' })}
             />
           </div>
         </div>

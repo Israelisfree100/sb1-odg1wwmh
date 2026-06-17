@@ -11,17 +11,17 @@ import type {
 } from '../types';
 import {
   TIMETABLE_ENTRIES,
-  ASSIGNMENTS,
   LOST_FOUND_ITEMS,
   DAILY_INFO,
 } from '../data/mockData';
 import type { DailyInfo } from '../data/mockData';
-import { CLASS_MESSAGES } from '../data/classMessages';
 import { SCHOOLS, CLASSES } from '../data/schools';
 import {
   getPublishedAnnouncements,
 } from '../services/announcementRepository';
 import { getExamsForClass } from '../services/examRepository';
+import { getAssignmentsForClass } from '../services/assignmentRepository';
+import { getClassMessagesForClass } from '../services/classMessageRepository';
 
 // ─── School & Class ───────────────────────────────────────────────────────────
 
@@ -84,7 +84,7 @@ export function getDailyInfo(classId: string): DailyInfo | undefined {
 // ─── Assignments ──────────────────────────────────────────────────────────────
 
 export function getAssignments(classId: string): Assignment[] {
-  return ASSIGNMENTS.filter((a) => a.classId === classId);
+  return getAssignmentsForClass(classId);
 }
 
 const ASSIGNMENT_STATUS_PREFIX = 'assignment_status_';
@@ -159,7 +159,7 @@ export function getRelevantAnnouncements(user: User): Announcement[] {
 // ─── Class Messages ───────────────────────────────────────────────────────────
 
 export function getClassMessages(classId: string): ClassMessage[] {
-  return CLASS_MESSAGES.filter((m) => m.classId === classId);
+  return getClassMessagesForClass(classId);
 }
 
 const READ_MESSAGES_PREFIX = 'class_messages_read_';

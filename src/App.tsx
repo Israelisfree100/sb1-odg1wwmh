@@ -15,7 +15,13 @@ import { SmartAssistantScreen } from './screens/SmartAssistantScreen';
 import { AdminDashboard } from './screens/AdminDashboard';
 import { AdminAnnouncementsScreen } from './screens/AdminAnnouncementsScreen';
 import { AdminExamsScreen } from './screens/AdminExamsScreen';
+import { AdminTeacherRequestsScreen } from './screens/AdminTeacherRequestsScreen';
 import { TeacherDashboard } from './screens/TeacherDashboard';
+import { TeacherClassesScreen, TeacherClassDetailScreen } from './screens/TeacherClassesScreen';
+import { TeacherAssignmentsScreen } from './screens/TeacherAssignmentsScreen';
+import { TeacherClassMessagesScreen } from './screens/TeacherClassMessagesScreen';
+import { TeacherExamsScreen } from './screens/TeacherExamsScreen';
+import { TeacherAnnouncementRequestsScreen } from './screens/TeacherAnnouncementRequestsScreen';
 import { ParentDashboard } from './screens/ParentDashboard';
 import { loadSessionUser, clearSession } from './utils/auth';
 import { getDashboardForRole, getAllowedScreenIds } from './utils/roleHelpers';
@@ -141,6 +147,20 @@ function App() {
         />
       );
 
+    case 'admin-teacher-announcement-requests':
+      if (activeUser.role !== 'school_admin') {
+        return (
+          <Dashboard activeUser={activeUser} onNavigate={navigate} onLogout={handleLogout} />
+        );
+      }
+      return (
+        <AdminTeacherRequestsScreen
+          activeUser={activeUser}
+          onBack={goAdminHome}
+          onLogout={handleLogout}
+        />
+      );
+
     // ── Teacher screens ────────────────────────────────────────────────────────
     case 'teacher-dashboard':
       if (activeUser.role !== 'teacher') {
@@ -152,6 +172,81 @@ function App() {
         <TeacherDashboard
           activeUser={activeUser}
           onNavigate={navigate}
+          onLogout={handleLogout}
+        />
+      );
+
+    case 'teacher-classes':
+      if (activeUser.role !== 'teacher') {
+        return <Dashboard activeUser={activeUser} onNavigate={navigate} onLogout={handleLogout} />;
+      }
+      return (
+        <TeacherClassesScreen
+          activeUser={activeUser}
+          onNavigate={navigate}
+          onBack={() => setScreen({ id: 'teacher-dashboard' })}
+          onLogout={handleLogout}
+        />
+      );
+
+    case 'teacher-class-detail':
+      if (activeUser.role !== 'teacher') {
+        return <Dashboard activeUser={activeUser} onNavigate={navigate} onLogout={handleLogout} />;
+      }
+      return (
+        <TeacherClassDetailScreen
+          activeUser={activeUser}
+          classId={screen.classId}
+          onNavigate={navigate}
+          onBack={() => setScreen({ id: 'teacher-classes' })}
+          onLogout={handleLogout}
+        />
+      );
+
+    case 'teacher-assignments':
+      if (activeUser.role !== 'teacher') {
+        return <Dashboard activeUser={activeUser} onNavigate={navigate} onLogout={handleLogout} />;
+      }
+      return (
+        <TeacherAssignmentsScreen
+          activeUser={activeUser}
+          onBack={() => setScreen({ id: 'teacher-dashboard' })}
+          onLogout={handleLogout}
+        />
+      );
+
+    case 'teacher-class-messages':
+      if (activeUser.role !== 'teacher') {
+        return <Dashboard activeUser={activeUser} onNavigate={navigate} onLogout={handleLogout} />;
+      }
+      return (
+        <TeacherClassMessagesScreen
+          activeUser={activeUser}
+          onBack={() => setScreen({ id: 'teacher-dashboard' })}
+          onLogout={handleLogout}
+        />
+      );
+
+    case 'teacher-exams':
+      if (activeUser.role !== 'teacher') {
+        return <Dashboard activeUser={activeUser} onNavigate={navigate} onLogout={handleLogout} />;
+      }
+      return (
+        <TeacherExamsScreen
+          activeUser={activeUser}
+          onBack={() => setScreen({ id: 'teacher-dashboard' })}
+          onLogout={handleLogout}
+        />
+      );
+
+    case 'teacher-announcement-requests':
+      if (activeUser.role !== 'teacher') {
+        return <Dashboard activeUser={activeUser} onNavigate={navigate} onLogout={handleLogout} />;
+      }
+      return (
+        <TeacherAnnouncementRequestsScreen
+          activeUser={activeUser}
+          onBack={() => setScreen({ id: 'teacher-dashboard' })}
           onLogout={handleLogout}
         />
       );

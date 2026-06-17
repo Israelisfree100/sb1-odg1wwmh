@@ -3,9 +3,9 @@ import { CLASSES, USERS } from '../data/schools';
 import { TIMETABLE_ENTRIES } from '../data/mockData';
 import { getExamsForClass } from '../services/examRepository';
 import { getPublishedAnnouncements } from '../services/announcementRepository';
-import { CLASS_MESSAGES } from '../data/classMessages';
+import { getAssignmentsForClass, getAllAssignmentsForSchool } from '../services/assignmentRepository';
+import { getAllMessagesForSchool } from '../services/classMessageRepository';
 import {
-  getAssignments,
   getCompletedAssignmentIds,
   getClass,
 } from './dataHelpers';
@@ -55,9 +55,16 @@ export function getDashboardForRole(role: UserRole): AppScreen {
 export function getAllowedScreenIds(role: UserRole): AppScreen['id'][] {
   switch (role) {
     case 'school_admin':
-      return ['admin-dashboard', 'admin-announcements', 'admin-exams', 'placeholder'];
+      return [
+        'admin-dashboard', 'admin-announcements', 'admin-exams',
+        'admin-teacher-announcement-requests', 'placeholder',
+      ];
     case 'teacher':
-      return ['teacher-dashboard', 'placeholder'];
+      return [
+        'teacher-dashboard', 'teacher-classes', 'teacher-class-detail',
+        'teacher-assignments', 'teacher-class-messages', 'teacher-exams',
+        'teacher-announcement-requests', 'placeholder',
+      ];
     case 'parent':
       return ['parent-dashboard', 'placeholder'];
     case 'student':
@@ -106,8 +113,10 @@ export function getTeacherTodayLessons(user: User): TimetableEntry[] {
 }
 
 export function getTeacherRelevantAssignments(user: User): Assignment[] {
-  if (!user.classIds) return [];
-  return user.classIds.flatMap((cid) => getAssignments(cid));
+  if (!user.schoolId) return [];
+  return getAllAssignmentsForSchool(user.schoolId).filter(
+    (a) => user.classIds?.includes(a.classId),
+  );
 }
 
 export function getTeacherRelevantExams(user: User): Exam[] {
@@ -116,8 +125,10 @@ export function getTeacherRelevantExams(user: User): Exam[] {
 }
 
 export function getTeacherRelevantMessages(user: User): ClassMessage[] {
-  if (!user.classIds) return [];
-  return CLASS_MESSAGES.filter((m) => user.classIds!.includes(m.classId));
+  if (!user.schoolId) return [];
+  return getAllMessagesForSchool(user.schoolId).filter(
+    (m) => user.classIds?.includes(m.classId),
+  );
 }
 
 export function getTeacherPublishedAnnouncements(user: User): Announcement[] {
@@ -159,7 +170,7 @@ export function getParentSelectedChildData(
       !e.isBreak,
   ).sort((a, b) => a.period - b.period);
 
-  const assignments = child.classId ? getAssignments(child.classId) : [];
+  const assignments = child.classId ? getAssignmentsForClass(child.classId) : [];
   const completed = getCompletedAssignmentIds(child.id);
   const completedCount = assignments.filter((a) => completed.includes(a.id)).length;
 

@@ -14,7 +14,14 @@ export type AppScreen =
   | { id: 'admin-dashboard' }
   | { id: 'admin-announcements' }
   | { id: 'admin-exams' }
+  | { id: 'admin-teacher-announcement-requests' }
   | { id: 'teacher-dashboard' }
+  | { id: 'teacher-classes' }
+  | { id: 'teacher-class-detail'; classId: string }
+  | { id: 'teacher-assignments' }
+  | { id: 'teacher-class-messages' }
+  | { id: 'teacher-exams' }
+  | { id: 'teacher-announcement-requests' }
   | { id: 'parent-dashboard' };
 
 export type PracticeMode = 'quick' | 'full' | 'by-topic';
@@ -111,6 +118,9 @@ export interface Assignment {
   dueDate: string;
   teacherName: string;
   priority: 'low' | 'medium' | 'high';
+  createdByUserId?: string;
+  createdByRole?: 'teacher' | 'admin';
+  updatedAt?: string;
 }
 
 export type AnnouncementAudience = 'school' | 'grade' | 'class' | 'parents';
@@ -139,6 +149,8 @@ export interface Exam {
   topics: string[];
   teacherName: string;
   notes?: string;
+  createdByUserId?: string;
+  createdByRole?: 'teacher' | 'admin';
 }
 
 // ─── Lost & Found ─────────────────────────────────────────────────────────────
@@ -183,6 +195,29 @@ export interface ClassMessage {
   content: string;
   publishedAt: string;
   isImportant: boolean;
+  createdByUserId?: string;
+}
+
+// ─── Teacher Announcement Requests ───────────────────────────────────────────
+
+export type AnnouncementRequestStatus = 'pending' | 'approved' | 'rejected';
+
+export interface TeacherAnnouncementRequest {
+  id: string;
+  schoolId: string;
+  requestedByUserId: string;
+  requestedByName: string;
+  title: string;
+  content: string;
+  requestedAudience: 'grade' | 'school' | 'parents';
+  targetGrade?: string;
+  requestedPublishDate?: string;
+  important: boolean;
+  teacherNote?: string;
+  status: AnnouncementRequestStatus;
+  rejectionReason?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 // ─── Smart Assistant chat ─────────────────────────────────────────────────────
