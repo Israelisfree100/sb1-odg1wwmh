@@ -8,7 +8,7 @@ import {
 } from '../utils/parentHelpers';
 import { getAssignmentsForClass } from '../services/assignmentRepository';
 
-interface Props { activeUser: User; onBack: () => void; onNavigate: (s: AppScreen) => void; onLogout: () => void; }
+interface Props { activeUser: User; onBack: () => void; onNavigate: (s: AppScreen) => void; onLogout: () => void; initialFilter?: string; }
 
 type Filter = 'all' | 'today' | 'week' | 'incomplete' | 'complete' | 'overdue';
 
@@ -26,9 +26,11 @@ function isPastDue(dateStr: string, completed: boolean) {
   return dateStr.includes('אתמול') || dateStr.includes('עבר') || dateStr.includes('באיחור');
 }
 
-export function ParentChildAssignmentsScreen({ activeUser, onBack, onLogout }: Props) {
+export function ParentChildAssignmentsScreen({ activeUser, onBack, onLogout, initialFilter }: Props) {
   const [childId, setChildId] = useState(() => getParentSelectedChildId(activeUser));
-  const [filter, setFilter] = useState<Filter>('all');
+  const validFilters: Filter[] = ['all', 'today', 'week', 'incomplete', 'complete', 'overdue'];
+  const initF: Filter = validFilters.includes(initialFilter as Filter) ? (initialFilter as Filter) : 'all';
+  const [filter, setFilter] = useState<Filter>(initF);
   const children = useMemo(() => getParentChildren(activeUser), [activeUser]);
   const child = useMemo(
     () => (canParentAccessChild(activeUser, childId) ? getSelectedChild(activeUser, childId) : undefined),

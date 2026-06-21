@@ -5,20 +5,22 @@ import {
 import type { User, TeacherAnnouncementRequest, AnnouncementRequestStatus } from '../types';
 import { getSchool, getInitials } from '../utils/dataHelpers';
 import {
-  getTeacherRequests, saveRequest, deleteRequest, generateRequestId,
+  getRequestsByTeacher, saveRequest, deleteRequest, generateRequestId,
 } from '../services/teacherAnnouncementRequestRepository';
 
 interface Props { activeUser: User; onBack: () => void; onLogout: () => void; }
 
 const STATUS_LABELS: Record<AnnouncementRequestStatus, string> = {
   pending: 'ממתין לאישור',
-  approved: 'אושר',
+  approved: 'אושר — ממתין לפרסום',
+  published: 'פורסם',
   rejected: 'נדחה',
 };
 
 const STATUS_COLORS: Record<AnnouncementRequestStatus, string> = {
   pending: 'bg-amber-100 text-amber-700',
-  approved: 'bg-emerald-100 text-emerald-700',
+  approved: 'bg-sky-100 text-sky-700',
+  published: 'bg-emerald-100 text-emerald-700',
   rejected: 'bg-rose-100 text-rose-700',
 };
 
@@ -66,7 +68,7 @@ function ConfirmDialog({ message, onConfirm, onCancel }: {
 
 export function TeacherAnnouncementRequestsScreen({ activeUser, onBack, onLogout }: Props) {
   const [requests, setRequests] = useState<TeacherAnnouncementRequest[]>(() =>
-    getTeacherRequests(activeUser.schoolId, activeUser.id),
+    getRequestsByTeacher(activeUser.schoolId, activeUser.id),
   );
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<FormState>(EMPTY_FORM());
@@ -78,7 +80,7 @@ export function TeacherAnnouncementRequestsScreen({ activeUser, onBack, onLogout
   const initials = getInitials(activeUser.fullName);
 
   const refresh = useCallback(() => {
-    setRequests(getTeacherRequests(activeUser.schoolId, activeUser.id));
+    setRequests(getRequestsByTeacher(activeUser.schoolId, activeUser.id));
   }, [activeUser.schoolId, activeUser.id]);
 
   const showMsg = (msg: string) => {
@@ -224,6 +226,12 @@ export function TeacherAnnouncementRequestsScreen({ activeUser, onBack, onLogout
                     <p className="text-xs text-gray-400 leading-relaxed">{r.content.slice(0, 120)}{r.content.length > 120 ? '...' : ''}</p>
                     {r.rejectionReason && (
                       <p className="text-xs text-rose-600 mt-1 font-medium">סיבת הדחייה: {r.rejectionReason}</p>
+                    )}
+                    {r.adminNote && r.status !== 'rejected' && (
+                      <p className="text-xs text-indigo-600 mt-1">הערת ההנהלה: {r.adminNote}</p>
+                    )}
+                    {r.status === 'published' && r.publishedAt && (
+                      <p className="text-xs text-emerald-600 mt-1 font-medium">פורסם ב-{r.publishedAt.split('T')[0]}</p>
                     )}
                     <p className="text-xs text-gray-300 mt-1">{r.createdAt.split('T')[0]}</p>
                   </div>

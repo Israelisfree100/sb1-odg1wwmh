@@ -21,6 +21,7 @@ interface Props {
   onBack: () => void;
   onNavigate: (s: AppScreen) => void;
   onLogout: () => void;
+  initialTab?: string;
 }
 
 type Tab = 'classes' | 'students' | 'teachers' | 'parents';
@@ -982,8 +983,10 @@ const TAB_CONFIG: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: 'parents', label: 'הורים', icon: <UserRound className="w-4 h-4" /> },
 ];
 
-export function AdminUsersClassesScreen({ activeUser, onBack, onLogout }: Props) {
-  const [tab, setTab] = useState<Tab>('classes');
+export function AdminUsersClassesScreen({ activeUser, onBack, onLogout, initialTab }: Props) {
+  const validInitialTab = (['classes', 'students', 'teachers', 'parents'] as Tab[]).includes(initialTab as Tab)
+    ? (initialTab as Tab) : 'classes';
+  const [tab, setTab] = useState<Tab>(validInitialTab);
   const school = getSchool(activeUser.schoolId);
   const schoolId = activeUser.schoolId;
 

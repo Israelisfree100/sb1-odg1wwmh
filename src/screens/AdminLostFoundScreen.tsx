@@ -8,7 +8,7 @@ import { getSchool } from '../utils/dataHelpers';
 import { getAllClassesForSchool } from '../services/classRepository';
 import { getMergedLostFoundItems, saveLostFoundItem, deleteLostFoundItemById } from '../utils/dataHelpers';
 
-interface Props { activeUser: User; onBack: () => void; onNavigate: (s: AppScreen) => void; onLogout: () => void; }
+interface Props { activeUser: User; onBack: () => void; onNavigate: (s: AppScreen) => void; onLogout: () => void; initialFilter?: string; }
 
 type StatusFilter = 'all' | LostFoundItem['status'];
 type TypeFilter = 'all' | 'found' | 'lost';
@@ -42,13 +42,16 @@ function emptyForm(): LFForm {
   return { reportType: 'found', itemName: '', description: '', location: '', color: '', category: 'other', classId: '', reportingSource: 'office' };
 }
 
-export function AdminLostFoundScreen({ activeUser, onBack, onLogout }: Props) {
+export function AdminLostFoundScreen({ activeUser, onBack, onLogout, initialFilter }: Props) {
   const schoolId = activeUser.schoolId;
   const school = getSchool(schoolId);
   const classes = useMemo(() => getAllClassesForSchool(schoolId).filter((c) => c.isActive !== false), [schoolId]);
   const [items, setItems] = useState<LostFoundItem[]>(() => getMergedLostFoundItems(schoolId));
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const validStatuses = ['all', 'open', 'claimed', 'returned', 'archived'] as StatusFilter[];
+  const initStatus: StatusFilter = validStatuses.includes(initialFilter as StatusFilter)
+    ? (initialFilter as StatusFilter) : 'all';
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>(initStatus);
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
   const [classFilter, setClassFilter] = useState('');
   const [catFilter, setCatFilter] = useState<'' | LostFoundCategory>('');

@@ -99,7 +99,11 @@ export function Dashboard({ activeUser, onNavigate, onLogout }: DashboardProps) 
     : { subject: '—', date: '—', topics: 'אין מבחן קרוב' };
 
   // ── Summary widgets ───────────────────────────────────────────────────────
-  const summaryWidgets = [
+  const summaryWidgets: {
+    id: string; label: string; value: string;
+    icon: React.ReactNode; iconBg: string; widgetBg: string;
+    borderColor: string; screen: AppScreen;
+  }[] = [
     {
       id: 'reminder',
       label: 'תזכורת חשובה להיום',
@@ -108,6 +112,7 @@ export function Dashboard({ activeUser, onNavigate, onLogout }: DashboardProps) 
       iconBg: 'bg-amber-100',
       widgetBg: 'bg-amber-50',
       borderColor: 'border-amber-100',
+      screen: nextExam ? { id: 'exam-assistant' } : { id: 'assignments' },
     },
     {
       id: 'tasks',
@@ -120,28 +125,27 @@ export function Dashboard({ activeUser, onNavigate, onLogout }: DashboardProps) 
       iconBg: 'bg-emerald-100',
       widgetBg: 'bg-emerald-50',
       borderColor: 'border-emerald-100',
+      screen: { id: 'assignments' },
     },
     {
       id: 'message',
-      label:
-        unreadCount > 0 ? `${unreadCount} הודעות שלא נקראו` : 'הודעות הכיתה',
+      label: unreadCount > 0 ? `${unreadCount} הודעות שלא נקראו` : 'הודעות הכיתה',
       value: latestMessage ? latestMessage.title : 'אין הודעות חדשות',
       icon: <MessageCircle className="w-5 h-5 text-violet-600" />,
       iconBg: 'bg-violet-100',
       widgetBg: 'bg-violet-50',
       borderColor: 'border-violet-100',
+      screen: { id: 'class-messages' },
     },
     {
       id: 'found',
-      label:
-        openLostFoundCount > 0
-          ? `${openLostFoundCount} פריטים פתוחים`
-          : 'אבדות ומציאות',
+      label: openLostFoundCount > 0 ? `${openLostFoundCount} פריטים פתוחים` : 'אבדות ומציאות',
       value: latestFound ? latestFound.itemName : 'אין פריטים חדשים',
       icon: <Package className="w-5 h-5 text-orange-600" />,
       iconBg: 'bg-orange-100',
       widgetBg: 'bg-orange-50',
       borderColor: 'border-orange-100',
+      screen: { id: 'lost-found' },
     },
   ];
 
@@ -320,6 +324,7 @@ export function Dashboard({ activeUser, onNavigate, onLogout }: DashboardProps) 
                     iconBg={w.iconBg}
                     widgetBg={w.widgetBg}
                     borderColor={w.borderColor}
+                    onClick={() => onNavigate(w.screen)}
                   />
                 ))}
               </div>

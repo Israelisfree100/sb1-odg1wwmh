@@ -10,7 +10,7 @@ import {
   getAllAssignmentsForSchool, saveAssignment, deleteAssignment, generateAssignmentId,
 } from '../services/assignmentRepository';
 
-interface Props { activeUser: User; onBack: () => void; onNavigate: (s: AppScreen) => void; onLogout: () => void; }
+interface Props { activeUser: User; onBack: () => void; onNavigate: (s: AppScreen) => void; onLogout: () => void; initialFilter?: string; }
 
 type PriorityFilter = 'all' | Assignment['priority'];
 type CreatorFilter = 'all' | 'admin' | 'teacher';
@@ -32,14 +32,20 @@ function emptyForm(): AForm {
 
 const SUBJECTS = ['עברית', 'חשבון', 'מדעים', 'אנגלית', 'תנ"ך', 'היסטוריה', 'גיאוגרפיה', 'חינוך גופני', 'אמנות', 'מוזיקה', 'כישורי חיים'];
 
-export function AdminAssignmentsScreen({ activeUser, onBack, onLogout }: Props) {
+export function AdminAssignmentsScreen({ activeUser, onBack, onLogout, initialFilter }: Props) {
   const schoolId = activeUser.schoolId;
   const school = getSchool(schoolId);
   const classes = useMemo(() => getAllClassesForSchool(schoolId).filter((c) => c.isActive !== false), [schoolId]);
   const [assignments, setAssignments] = useState(() => getAllAssignmentsForSchool(schoolId));
   const [search, setSearch] = useState('');
   const [classFilter, setClassFilter] = useState('');
-  const [priorityFilter, setPriorityFilter] = useState<PriorityFilter>('all');
+  const initPriority = (): PriorityFilter => {
+    if (initialFilter === 'urgent' || initialFilter === 'high') return 'high';
+    if (initialFilter === 'medium') return 'medium';
+    if (initialFilter === 'low') return 'low';
+    return 'all';
+  };
+  const [priorityFilter, setPriorityFilter] = useState<PriorityFilter>(initPriority);
   const [creatorFilter, setCreatorFilter] = useState<CreatorFilter>('all');
   const [form, setForm] = useState<AForm | null>(null);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});

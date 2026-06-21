@@ -47,12 +47,22 @@ interface StatWidgetProps {
   color: string;
 }
 
-function StatWidget({ icon, label, value, color }: StatWidgetProps) {
-  return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex items-center gap-3">
-      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${color}`}>
-        {icon}
+function StatWidget({ icon, label, value, color, onClick }: StatWidgetProps & { onClick?: () => void }) {
+  const base = 'bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex items-center gap-3 w-full text-right';
+  const interactive = onClick
+    ? 'hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400'
+    : '';
+  return onClick ? (
+    <button type="button" onClick={onClick} className={`${base} ${interactive}`}>
+      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${color}`}>{icon}</div>
+      <div className="flex-1 min-w-0">
+        <p className="text-xl font-extrabold text-gray-800 leading-none">{value}</p>
+        <p className="text-xs text-gray-500 mt-0.5">{label}</p>
       </div>
+    </button>
+  ) : (
+    <div className={base}>
+      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${color}`}>{icon}</div>
       <div>
         <p className="text-xl font-extrabold text-gray-800 leading-none">{value}</p>
         <p className="text-xs text-gray-500 mt-0.5">{label}</p>
@@ -207,43 +217,49 @@ export function TeacherDashboard({ activeUser, onNavigate, onLogout }: TeacherDa
           )}
         </div>
 
-        {/* Stats row */}
+        {/* Stats row — all clickable */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           <StatWidget
             icon={<Users className="w-5 h-5 text-emerald-600" />}
             label="הכיתות שלי"
             value={teacherClasses.length}
             color="bg-emerald-100"
+            onClick={() => onNavigate({ id: 'teacher-classes' })}
           />
           <StatWidget
             icon={<ClipboardList className="w-5 h-5 text-sky-600" />}
             label="משימות פעילות"
             value={assignments.length}
             color="bg-sky-100"
+            onClick={() => onNavigate({ id: 'teacher-assignments' })}
           />
           <StatWidget
             icon={<FileText className="w-5 h-5 text-violet-600" />}
             label="מבחנים קרובים"
             value={exams.length}
             color="bg-violet-100"
+            onClick={() => onNavigate({ id: 'teacher-exams' })}
           />
           <StatWidget
             icon={<BellRing className="w-5 h-5 text-amber-600" />}
             label="הודעות שפורסמו"
             value={messages.length}
             color="bg-amber-100"
+            onClick={() => onNavigate({ id: 'teacher-class-messages' })}
           />
           <StatWidget
             icon={<Calendar className="w-5 h-5 text-teal-600" />}
             label="שיעורים היום"
             value={todayLessons.length}
             color="bg-teal-100"
+            onClick={() => onNavigate({ id: 'teacher-classes' })}
           />
           <StatWidget
             icon={<Megaphone className="w-5 h-5 text-rose-600" />}
             label="בקשות ממתינות"
             value={pendingRequestCount}
             color="bg-rose-100"
+            onClick={() => onNavigate({ id: 'teacher-announcement-requests', initialFilter: 'pending' })}
           />
         </div>
 
@@ -312,42 +328,37 @@ export function TeacherDashboard({ activeUser, onNavigate, onLogout }: TeacherDa
             </div>
             <div className="space-y-3">
               {nextExam && (
-                <div className="flex items-start gap-3 p-3 bg-violet-50 rounded-xl border border-violet-100">
+                <button type="button" onClick={() => onNavigate({ id: 'teacher-exams' })}
+                  className="w-full text-right flex items-start gap-3 p-3 bg-violet-50 rounded-xl border border-violet-100 hover:shadow-md transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400">
                   <FileText className="w-5 h-5 text-violet-600 mt-0.5 flex-shrink-0" />
-                  <div>
+                  <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold text-violet-800">מבחן קרוב</p>
-                    <p className="text-xs text-violet-700 mt-0.5">
-                      {nextExam.subject} — {nextExam.dateLabel}
-                    </p>
-                    <p className="text-xs text-violet-600 mt-0.5">
-                      {nextExam.topics.join(', ')}
-                    </p>
+                    <p className="text-xs text-violet-700 mt-0.5">{nextExam.subject} — {nextExam.dateLabel}</p>
+                    <p className="text-xs text-violet-600 mt-0.5">{nextExam.topics.join(', ')}</p>
                   </div>
-                </div>
+                </button>
               )}
               {urgentAssignment && (
-                <div className="flex items-start gap-3 p-3 bg-rose-50 rounded-xl border border-rose-100">
+                <button type="button" onClick={() => onNavigate({ id: 'teacher-assignments' })}
+                  className="w-full text-right flex items-start gap-3 p-3 bg-rose-50 rounded-xl border border-rose-100 hover:shadow-md transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400">
                   <ClipboardList className="w-5 h-5 text-rose-600 mt-0.5 flex-shrink-0" />
-                  <div>
+                  <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold text-rose-800">משימה דחופה</p>
-                    <p className="text-xs text-rose-700 mt-0.5">
-                      {urgentAssignment.title} — {urgentAssignment.subject}
-                    </p>
-                    <p className="text-xs text-rose-600 mt-0.5">
-                      מועד: {urgentAssignment.dueDate}
-                    </p>
+                    <p className="text-xs text-rose-700 mt-0.5">{urgentAssignment.title} — {urgentAssignment.subject}</p>
+                    <p className="text-xs text-rose-600 mt-0.5">מועד: {urgentAssignment.dueDate}</p>
                   </div>
-                </div>
+                </button>
               )}
               {importantMessage && (
-                <div className="flex items-start gap-3 p-3 bg-amber-50 rounded-xl border border-amber-100">
+                <button type="button" onClick={() => onNavigate({ id: 'teacher-class-messages' })}
+                  className="w-full text-right flex items-start gap-3 p-3 bg-amber-50 rounded-xl border border-amber-100 hover:shadow-md transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400">
                   <MessageSquare className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
-                  <div>
+                  <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold text-amber-800">הודעה חשובה</p>
                     <p className="text-xs text-amber-700 mt-0.5">{importantMessage.title}</p>
                     <p className="text-xs text-amber-600 mt-0.5">{importantMessage.teacherName}</p>
                   </div>
-                </div>
+                </button>
               )}
             </div>
           </section>
@@ -425,7 +436,16 @@ export function TeacherDashboard({ activeUser, onNavigate, onLogout }: TeacherDa
             </div>
             <div className="space-y-2">
               {recentActivity.map((item, i) => (
-                <div key={i} className="flex items-center gap-3 py-2 border-b border-gray-50 last:border-0">
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => onNavigate(
+                    item.type === 'assignment'
+                      ? { id: 'teacher-assignments' }
+                      : { id: 'teacher-class-messages' },
+                  )}
+                  className="w-full flex items-center gap-3 py-2 border-b border-gray-50 last:border-0 hover:bg-gray-50 rounded-lg px-1 transition-colors text-right focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+                >
                   <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${
                     item.type === 'assignment' ? 'bg-sky-100' : 'bg-amber-100'
                   }`}>
@@ -439,7 +459,7 @@ export function TeacherDashboard({ activeUser, onNavigate, onLogout }: TeacherDa
                     <p className="text-xs text-gray-400">{item.label}</p>
                   </div>
                   <p className="text-xs text-gray-300 flex-shrink-0">{item.date.split('T')[0]}</p>
-                </div>
+                </button>
               ))}
             </div>
           </section>

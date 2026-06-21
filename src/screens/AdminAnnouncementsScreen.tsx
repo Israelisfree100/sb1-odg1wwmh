@@ -11,7 +11,13 @@ import { getSchool } from '../utils/dataHelpers';
 import {
   getAllAnnouncementsForAdmin, saveAnnouncement, deleteAnnouncement, generateAnnouncementId,
 } from '../services/announcementRepository';
-import { getTeacherAnnouncementRequests, approveRequest, rejectRequest } from '../services/teacherAnnouncementRequestRepository';
+import {
+  getTeacherAnnouncementRequests,
+  getAllRequestsForSchool,
+  approveRequest,
+  rejectRequest,
+  publishApprovedRequest,
+} from '../services/teacherAnnouncementRequestRepository';
 import { getAllClassesForSchool } from '../services/classRepository';
 import { getAudiencePreview } from '../utils/announcementVisibility';
 
@@ -77,6 +83,42 @@ function annToForm(ann: Announcement): AnnForm {
   };
 }
 
+/**
+ * Maps a teacher's legacy requestedAudience + targetGrade into the new extended
+ * targeting fields used in the announcement form and announcement repository.
+ * This ensures the admin's approval form is always pre-populated with correct
+ * audience / scope, preventing accidental publication to the wrong audience.
+ */
+function requestToFormDefaults(req: TeacherAnnouncementRequest): Partial<AnnForm> {
+  let audienceRoles: AnnouncementAudienceRole[];
+  let scopeType: AnnouncementScopeType;
+  switch (req.requestedAudience) {
+    case 'parents':
+      audienceRoles = ['parents'];
+      scopeType = 'whole_school';
+      break;
+    case 'grade':
+      audienceRoles = ['students', 'parents'];
+      scopeType = 'grade';
+      break;
+    case 'school':
+    default:
+      audienceRoles = ['all_users'];
+      scopeType = 'whole_school';
+  }
+  return {
+    title: req.title,
+    content: req.content,
+    // Guaranteed non-empty: requestedByName is required in TeacherAnnouncementRequest
+    author: req.requestedByName || (req.requestedBy ?? ''),
+    audienceRoles,
+    scopeType,
+    targetGrade: scopeType === 'grade' ? (req.targetGrade ?? '') : '',
+    important: req.important,
+    publishAt: req.requestedPublishDate ?? '',
+  };
+}
+
 type ActiveTab = 'announcements' | 'requests';
 
 export function AdminAnnouncementsScreen({ activeUser, onBack, onLogout }: Props) {
@@ -98,68 +140,101 @@ export function AdminAnnouncementsScreen({ activeUser, onBack, onLogout }: Props
   const [approveReqId, setApproveReqId] = useState<string | null>(null);
   const [approveForm, setApproveForm] = useState<AnnForm | null>(null);
 
-  const refresh = () => { setAnnouncements(getAllAnnouncementsForAdmin(schoolId)); setRequests(getTeacherAnnouncementRequests(schoolId)); };
+  const refresh = () => {
+    setAnnouncements(getAllAnnouncementsForAdmin(schoolId));
+    setRequests(getTeacherAnnouncementRequests(schoolId));
+  };
   const showSuccess = (msg: string) => { setSuccess(msg); setTimeout(() => setSuccess(''), 2500); };
+  const showErr = (msg: string) => { setSuccess(''); setFormErrors((prev) => ({ ...prev, _global: msg })); };
 
   const validate = (f: AnnForm): boolean => {
     const e: Record<string, string> = {};
-    if (!f.title.trim()) e.title = 'חובה';
-    if (!f.content.trim()) e.content = 'חובה';
-    if (!f.author.trim()) e.author = 'חובה';
-    if (!f.audienceRoles.length) e.audienceRoles = 'בחר קהל יעד אחד לפחות';
+    if (!f.title?.trim()) e.title = 'חובה';
+    if (!f.content?.trim()) e.content = 'חובה';
+    if (!f.author?.trim()) e.author = 'חובה — שם הכותב חסר';
+    if (!f.audienceRoles?.length) e.audienceRoles = 'בחר קהל יעד אחד לפחות';
     if (!f.scopeType) e.scopeType = 'חובה';
-    if (f.scopeType === 'grade' && !f.targetGrade) e.targetGrade = 'חובה';
-    if (f.scopeType === 'class' && f.targetClassIds.length === 0) e.targetClassIds = 'בחר כיתה אחת לפחות';
+    if (f.scopeType === 'grade' && !f.targetGrade) e.targetGrade = 'חובה — הזן שכבת יעד';
+    if (f.scopeType === 'class' && !f.targetClassIds?.length) e.targetClassIds = 'בחר כיתה אחת לפחות';
     setFormErrors(e);
     return Object.keys(e).length === 0;
   };
 
+  /** Builds the common Announcement object from an AnnForm, shared by save and approve. */
+  const buildAnnouncement = (f: AnnForm, overrideId?: string): Announcement => ({
+    id: overrideId ?? f.id ?? generateAnnouncementId(),
+    schoolId,
+    title: f.title.trim(),
+    content: f.content.trim(),
+    author: (f.author ?? '').trim(),
+    date: f.date,
+    audience: f.scopeType === 'grade' ? 'grade'
+      : f.scopeType === 'class' ? 'class'
+      : (f.audienceRoles.includes('parents') && f.audienceRoles.length === 1) ? 'parents'
+      : 'school',
+    targetGrade: f.scopeType === 'grade' ? f.targetGrade : undefined,
+    targetClassId: f.scopeType === 'class' && f.targetClassIds.length > 0
+      ? f.targetClassIds[0] : undefined,
+    important: f.important,
+    isPublished: f.isPublished,
+    audienceRoles: f.audienceRoles,
+    scopeType: f.scopeType as AnnouncementScopeType,
+    targetClassIds: f.scopeType === 'class' ? f.targetClassIds : undefined,
+    publishAt: f.publishAt || undefined,
+    expiresAt: f.expiresAt || undefined,
+    createdByUserId: activeUser.id,
+    createdByRole: 'school_admin',
+  });
+
   const handleSave = (f: AnnForm) => {
     if (!validate(f)) return;
-    const ann: Announcement = {
-      id: f.id ?? generateAnnouncementId(),
-      schoolId,
-      title: f.title.trim(), content: f.content.trim(), author: f.author.trim(), date: f.date,
-      audience: f.scopeType === 'grade' ? 'grade' : f.scopeType === 'class' ? 'class' : f.audienceRoles.includes('parents') && f.audienceRoles.length === 1 ? 'parents' : 'school',
-      targetGrade: f.scopeType === 'grade' ? f.targetGrade : undefined,
-      targetClassId: f.scopeType === 'class' && f.targetClassIds.length > 0 ? f.targetClassIds[0] : undefined,
-      important: f.important, isPublished: f.isPublished,
-      audienceRoles: f.audienceRoles,
-      scopeType: f.scopeType as AnnouncementScopeType,
-      targetClassIds: f.scopeType === 'class' ? f.targetClassIds : undefined,
-      publishAt: f.publishAt || undefined,
-      expiresAt: f.expiresAt || undefined,
-      createdByUserId: activeUser.id, createdByRole: 'school_admin',
-    };
+    const ann = buildAnnouncement(f);
     saveAnnouncement(schoolId, ann);
     refresh(); setForm(null); setApproveForm(null); setApproveReqId(null);
     showSuccess(f.id ? 'ההודעה עודכנה' : 'ההודעה נוצרה בהצלחה');
   };
 
-  const handleApproveRequest = (reqId: string, f: AnnForm) => {
-    if (!validate(f)) return;
-    const ann: Announcement = {
-      id: generateAnnouncementId(),
-      schoolId,
-      title: f.title.trim(), content: f.content.trim(), author: f.author.trim(), date: f.date,
-      audience: f.scopeType === 'grade' ? 'grade' : f.scopeType === 'class' ? 'class' : f.audienceRoles.includes('parents') && f.audienceRoles.length === 1 ? 'parents' : 'school',
-      targetGrade: f.scopeType === 'grade' ? f.targetGrade : undefined,
-      targetClassId: f.scopeType === 'class' && f.targetClassIds.length > 0 ? f.targetClassIds[0] : undefined,
-      important: f.important, isPublished: f.isPublished,
-      audienceRoles: f.audienceRoles,
-      scopeType: f.scopeType as AnnouncementScopeType,
-      targetClassIds: f.scopeType === 'class' ? f.targetClassIds : undefined,
-      publishAt: f.publishAt || undefined,
-      expiresAt: f.expiresAt || undefined,
-      createdByUserId: activeUser.id, createdByRole: 'school_admin',
-    };
-    saveAnnouncement(schoolId, ann);
-    approveRequest(reqId, schoolId, ann.id);
-    refresh(); setApproveForm(null); setApproveReqId(null);
-    showSuccess('הבקשה אושרה וההודעה פורסמה');
+  /** Step 1: approve only — no announcement created yet. */
+  const handleApproveRequest = (reqId: string) => {
+    if (activeUser.role !== 'school_admin') { showErr('רק מנהל בית ספר רשאי לאשר בקשות'); return; }
+    const live = getAllRequestsForSchool(schoolId).find((r) => r.id === reqId);
+    if (!live) { showErr('הבקשה לא נמצאה'); refresh(); return; }
+    if (live.status !== 'pending') { showErr(`הבקשה כבר בסטטוס: ${live.status}`); refresh(); return; }
+    if (live.schoolId !== schoolId) { showErr('הבקשה שייכת לבית ספר אחר'); return; }
+    try {
+      approveRequest(reqId, schoolId, activeUser.id);
+    } catch (e) {
+      showErr(e instanceof Error ? e.message : 'שגיאה בלתי צפויה');
+      return;
+    }
+    refresh();
+    showSuccess('הבקשה אושרה. כעת ניתן לפרסם את ההודעה.');
   };
 
-  const pendingRequests = useMemo(() => requests.filter((r) => r.status === 'pending'), [requests]);
+  /** Step 2: publish — creates announcement and marks request as published. */
+  const handlePublishRequest = (reqId: string, f: AnnForm) => {
+    if (activeUser.role !== 'school_admin') { showErr('רק מנהל בית ספר רשאי לפרסם הודעות'); return; }
+    const live = getAllRequestsForSchool(schoolId).find((r) => r.id === reqId);
+    if (!live) { showErr('הבקשה לא נמצאה'); setApproveForm(null); setApproveReqId(null); refresh(); return; }
+    if (live.status === 'published') { showErr('ההודעה כבר פורסמה'); setApproveForm(null); setApproveReqId(null); refresh(); return; }
+    if (live.status !== 'approved') { showErr('ניתן לפרסם רק בקשות שאושרו'); return; }
+    if (!validate(f)) return;
+    const ann = buildAnnouncement(f, generateAnnouncementId());
+    try {
+      saveAnnouncement(schoolId, ann);
+      publishApprovedRequest(reqId, schoolId, ann.id, activeUser.id);
+    } catch (e) {
+      showErr(e instanceof Error ? e.message : 'שגיאה בפרסום ההודעה');
+      return;
+    }
+    refresh(); setApproveForm(null); setApproveReqId(null);
+    showSuccess('ההודעה פורסמה בהצלחה.');
+  };
+
+  const pendingRequests = useMemo(
+    () => requests.filter((r) => r.status === 'pending' || r.status === 'approved'),
+    [requests],
+  );
 
   return (
     <div dir="rtl" className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50 font-sans">
@@ -183,6 +258,11 @@ export function AdminAnnouncementsScreen({ activeUser, onBack, onLogout }: Props
 
       <main className="max-w-5xl mx-auto px-4 py-6 space-y-4">
         {success && <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-2.5 text-sm text-emerald-800 flex items-center gap-2"><CheckCircle className="w-4 h-4" />{success}</div>}
+        {formErrors._global && (
+          <div className="bg-rose-50 border border-rose-200 rounded-xl px-4 py-2.5 text-sm text-rose-800 flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4" />{formErrors._global}
+          </div>
+        )}
 
         {/* Tabs */}
         <div className="flex gap-1 bg-white rounded-2xl p-1.5 border border-gray-100 shadow-sm">
@@ -261,35 +341,51 @@ export function AdminAnnouncementsScreen({ activeUser, onBack, onLogout }: Props
             {requests.length === 0 ? (
               <div className="bg-white rounded-2xl border border-gray-100 p-10 text-center text-gray-400 text-sm">אין בקשות מורים</div>
             ) : requests.map((req) => (
-              <div key={req.id} className={`bg-white rounded-xl border shadow-sm px-4 py-3 ${req.status === 'pending' ? 'border-amber-200 bg-amber-50/30' : 'border-gray-100'}`}>
+              <div key={req.id} className={`bg-white rounded-xl border shadow-sm px-4 py-3 ${
+                req.status === 'pending' ? 'border-amber-200 bg-amber-50/30'
+                : req.status === 'approved' ? 'border-sky-200 bg-sky-50/20'
+                : 'border-gray-100'
+              }`}>
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       <p className="text-sm font-bold text-gray-800">{req.title}</p>
-                      {req.status === 'pending' && <span className="bg-amber-100 text-amber-700 text-xs font-bold px-2 py-0.5 rounded-full">ממתין</span>}
-                      {req.status === 'approved' && <span className="bg-emerald-100 text-emerald-700 text-xs font-bold px-2 py-0.5 rounded-full">אושר</span>}
+                      {req.status === 'pending' && <span className="bg-amber-100 text-amber-700 text-xs font-bold px-2 py-0.5 rounded-full">ממתין לאישור</span>}
+                      {req.status === 'approved' && <span className="bg-sky-100 text-sky-700 text-xs font-bold px-2 py-0.5 rounded-full">אושר — ממתין לפרסום</span>}
+                      {req.status === 'published' && <span className="bg-emerald-100 text-emerald-700 text-xs font-bold px-2 py-0.5 rounded-full">פורסם</span>}
                       {req.status === 'rejected' && <span className="bg-rose-100 text-rose-700 text-xs font-bold px-2 py-0.5 rounded-full">נדחה</span>}
                     </div>
-                    <p className="text-xs text-gray-500">{req.requestedBy} · קהל: {req.requestedAudience}</p>
+                    <p className="text-xs text-gray-500">{req.requestedBy ?? req.requestedByName} · קהל: {req.requestedAudience}</p>
                     <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{req.content}</p>
+                    {req.status === 'published' && req.publishedAt && (
+                      <p className="text-xs text-emerald-600 mt-1">פורסם ב-{req.publishedAt.split('T')[0]}</p>
+                    )}
                   </div>
-                  {req.status === 'pending' && (
-                    <div className="flex gap-1 flex-shrink-0">
+                  <div className="flex flex-col gap-1 flex-shrink-0">
+                    {req.status === 'pending' && (
+                      <>
+                        <button
+                          onClick={() => handleApproveRequest(req.id)}
+                          className="px-2.5 py-1.5 text-xs font-semibold text-white bg-sky-600 hover:bg-sky-700 rounded-lg transition-colors">
+                          אישור בקשה
+                        </button>
+                        <button onClick={() => { setRejectId(req.id); setRejectNote(''); }}
+                          className="px-2.5 py-1.5 text-xs font-semibold text-white bg-rose-500 hover:bg-rose-600 rounded-lg transition-colors">דחה</button>
+                      </>
+                    )}
+                    {req.status === 'approved' && (
                       <button
                         onClick={() => {
+                          const defaults = requestToFormDefaults(req);
                           setApproveReqId(req.id);
-                          const f = emptyForm();
-                          setApproveForm({
-                            ...f, title: req.title, content: req.content,
-                            author: req.requestedBy,
-                          });
+                          setApproveForm({ ...emptyForm(), ...defaults });
                           setFormErrors({});
                         }}
-                        className="px-2.5 py-1.5 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors">אשר</button>
-                      <button onClick={() => { setRejectId(req.id); setRejectNote(''); }}
-                        className="px-2.5 py-1.5 text-xs font-semibold text-white bg-rose-500 hover:bg-rose-600 rounded-lg transition-colors">דחה</button>
-                    </div>
-                  )}
+                        className="px-2.5 py-1.5 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors">
+                        פרסום ההודעה
+                      </button>
+                    )}
+                  </div>
                 </div>
                 {req.adminNote && <p className="text-xs text-gray-400 mt-1.5 bg-gray-50 rounded-lg px-2 py-1">הערת מנהל: {req.adminNote}</p>}
               </div>
@@ -297,7 +393,7 @@ export function AdminAnnouncementsScreen({ activeUser, onBack, onLogout }: Props
           </div>
         )}
 
-        {/* Announcement form */}
+        {/* Announcement form — shown for both create/edit and approval flows */}
         {(form || approveForm) && (
           <AnnouncementFormModal
             form={(form ?? approveForm)!}
@@ -307,8 +403,15 @@ export function AdminAnnouncementsScreen({ activeUser, onBack, onLogout }: Props
             grades={grades}
             classes={classes}
             classNameMap={classNameMap}
-            onSave={() => form ? handleSave(form) : handleApproveRequest(approveReqId!, approveForm!)}
-            onClose={() => { setForm(null); setApproveForm(null); setApproveReqId(null); }}
+            onSave={(latestForm) => {
+              if (form) {
+                handleSave(latestForm);
+              } else {
+                // approveForm is open for the "publish" step (step 2)
+                handlePublishRequest(approveReqId!, latestForm);
+              }
+            }}
+            onClose={() => { setForm(null); setApproveForm(null); setApproveReqId(null); setFormErrors({}); }}
             isApproval={!!approveReqId}
           />
         )}
@@ -359,7 +462,8 @@ interface FormProps {
   grades: string[];
   classes: { id: string; name: string; grade: string }[];
   classNameMap: Map<string, string>;
-  onSave: () => void;
+  /** Called with the current form value so the parent always gets the freshest data. */
+  onSave: (f: AnnForm) => void;
   onClose: () => void;
   isApproval: boolean;
 }
@@ -390,6 +494,13 @@ function AnnouncementFormModal({
         </div>
 
         <div className="space-y-3">
+          {/* Global error message */}
+          {formErrors._global && (
+            <div className="bg-rose-50 border border-rose-200 rounded-xl px-3 py-2 text-xs text-rose-700 flex items-center gap-2">
+              <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />{formErrors._global}
+            </div>
+          )}
+
           {/* Title */}
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1">כותרת <span className="text-rose-500">*</span></label>
@@ -513,7 +624,7 @@ function AnnouncementFormModal({
 
         <div className="flex gap-2 mt-5 justify-end">
           <button onClick={onClose} className="px-4 py-2 text-sm font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl">ביטול</button>
-          <button onClick={onSave} className="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl">
+          <button onClick={() => onSave(form)} className="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl">
             {isApproval ? 'אשר ופרסם' : 'שמור'}
           </button>
         </div>

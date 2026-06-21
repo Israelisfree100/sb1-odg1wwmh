@@ -1,40 +1,49 @@
 // ─── Practice / Exam Assistant ───────────────────────────────────────────────
 
+/**
+ * Navigation state shared across screens.
+ * Optional fields are passed when a dashboard card pre-selects a filter or tab.
+ * The target screen initialises from these on mount, then allows free navigation.
+ */
 export type AppScreen =
+  // ── Student ──────────────────────────────────────────────────────────────
   | { id: 'dashboard' }
   | { id: 'daily-schedule' }
-  | { id: 'assignments' }
-  | { id: 'class-messages' }
+  | { id: 'assignments'; initialFilter?: string }
+  | { id: 'class-messages'; initialFilter?: string }
   | { id: 'lost-found' }
   | { id: 'smart-assistant' }
   | { id: 'exam-assistant' }
   | { id: 'practice'; mode: PracticeMode; subject?: string }
   | { id: 'announcements' }
   | { id: 'placeholder'; title: string }
+  // ── School Admin ──────────────────────────────────────────────────────────
   | { id: 'admin-dashboard' }
-  | { id: 'admin-announcements' }
-  | { id: 'admin-exams' }
-  | { id: 'admin-teacher-announcement-requests' }
+  | { id: 'admin-announcements'; initialTab?: string }
+  | { id: 'admin-exams'; initialFilter?: string }
+  | { id: 'admin-teacher-announcement-requests'; initialFilter?: string }
+  | { id: 'admin-users-classes'; initialTab?: string }
+  | { id: 'admin-assignments'; initialFilter?: string }
+  | { id: 'admin-timetable' }
+  | { id: 'admin-lost-found'; initialFilter?: string }
+  // ── Teacher ───────────────────────────────────────────────────────────────
   | { id: 'teacher-dashboard' }
   | { id: 'teacher-classes' }
   | { id: 'teacher-class-detail'; classId: string }
-  | { id: 'teacher-assignments' }
-  | { id: 'teacher-class-messages' }
-  | { id: 'teacher-exams' }
-  | { id: 'teacher-announcement-requests' }
+  | { id: 'teacher-assignments'; initialFilter?: string }
+  | { id: 'teacher-class-messages'; initialFilter?: string }
+  | { id: 'teacher-exams'; initialFilter?: string }
+  | { id: 'teacher-announcement-requests'; initialFilter?: string }
+  | { id: 'teacher-notice-board' }
+  // ── Parent ────────────────────────────────────────────────────────────────
   | { id: 'parent-dashboard' }
   | { id: 'parent-child-timetable' }
-  | { id: 'parent-child-assignments' }
-  | { id: 'parent-child-exams' }
-  | { id: 'parent-class-messages' }
-  | { id: 'parent-school-announcements' }
+  | { id: 'parent-child-assignments'; initialFilter?: string }
+  | { id: 'parent-child-exams'; initialFilter?: string }
+  | { id: 'parent-class-messages'; initialFilter?: string }
+  | { id: 'parent-school-announcements'; initialFilter?: string }
   | { id: 'parent-practice-progress' }
-  | { id: 'parent-notifications' }
-  | { id: 'admin-users-classes' }
-  | { id: 'admin-assignments' }
-  | { id: 'admin-timetable' }
-  | { id: 'admin-lost-found' }
-  | { id: 'teacher-notice-board' };
+  | { id: 'parent-notifications' };
 
 export type PracticeMode = 'quick' | 'full' | 'by-topic';
 
@@ -262,14 +271,19 @@ export interface ClassMessage {
 
 // ─── Teacher Announcement Requests ───────────────────────────────────────────
 
-export type AnnouncementRequestStatus = 'pending' | 'approved' | 'rejected';
+/**
+ * Two-step lifecycle:
+ *   pending → (approve) → approved → (publish) → published
+ *   pending → (reject)  → rejected
+ */
+export type AnnouncementRequestStatus = 'pending' | 'approved' | 'published' | 'rejected';
 
 export interface TeacherAnnouncementRequest {
   id: string;
   schoolId: string;
   requestedByUserId: string;
   requestedByName: string;
-  /** Alias for requestedByName — used in admin display */
+  /** Alias for requestedByName — used in admin display (computed on load) */
   requestedBy?: string;
   title: string;
   content: string;
@@ -282,7 +296,18 @@ export interface TeacherAnnouncementRequest {
   rejectionReason?: string;
   /** Admin note added on approval or rejection */
   adminNote?: string;
-  /** ID of the announcement created upon approval */
+  // ── Step 1: Approve ────────────────────────────────────────────────────────
+  approvedAt?: string;
+  approvedByUserId?: string;
+  // ── Step 2: Publish ────────────────────────────────────────────────────────
+  publishedAt?: string;
+  publishedByUserId?: string;
+  /** ID of the announcement created when the request was published */
+  publishedAnnouncementId?: string;
+  /**
+   * @deprecated Use publishedAnnouncementId instead.
+   * Kept for backward compatibility with older stored requests.
+   */
   approvedAnnouncementId?: string;
   createdAt: string;
   updatedAt: string;

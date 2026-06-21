@@ -1,92 +1,210 @@
 /**
  * Teacher Announcement Request Repository
- * Manages the full lifecycle of teacher-to-admin announcement requests.
- * localStorage key: teacher_announcement_requests_<schoolId>
+ *
+ * Single source of truth for teacher → admin publication requests.
+ * localStorage key (school-scoped): teacher_announcement_requests_<schoolId>
+ *
+ * Two-step lifecycle:
+ *   pending → approved → published
+ *   pending → rejected
  */
-import type { TeacherAnnouncementRequest } from '../types';
+import type { TeacherAnnouncementRequest, AnnouncementRequestStatus } from '../types';
 
 const KEY = (schoolId: string) => `teacher_announcement_requests_${schoolId}`;
 
-export function generateRequestId(): string {
-  return `req-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-}
+// ─── Internal I/O ─────────────────────────────────────────────────────────────
 
-function loadRequests(schoolId: string): TeacherAnnouncementRequest[] {
+function loadAll(schoolId: string): TeacherAnnouncementRequest[] {
   try {
-    return JSON.parse(
-      localStorage.getItem(KEY(schoolId)) ?? '[]',
-    ) as TeacherAnnouncementRequest[];
+    const raw = localStorage.getItem(KEY(schoolId));
+    if (!raw) return [];
+    return JSON.parse(raw) as TeacherAnnouncementRequest[];
   } catch {
     return [];
   }
 }
 
-function saveAll(schoolId: string, requests: TeacherAnnouncementRequest[]): void {
+function persistAll(schoolId: string, requests: TeacherAnnouncementRequest[]): void {
   try {
     localStorage.setItem(KEY(schoolId), JSON.stringify(requests));
   } catch {
-    // ignore
+    // storage full — silently ignore
   }
 }
 
-/** All requests for a school (admin view — all statuses). */
-export function getAllRequests(schoolId: string): TeacherAnnouncementRequest[] {
-  return loadRequests(schoolId);
+// ─── ID generation ────────────────────────────────────────────────────────────
+
+export function generateRequestId(): string {
+  return `req-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 }
 
-/** Requests created by a specific teacher. */
-export function getTeacherRequests(
+// ─── Read helpers ─────────────────────────────────────────────────────────────
+
+/** All requests for a school — used by both teacher and admin views. */
+export function getAllRequestsForSchool(schoolId: string): TeacherAnnouncementRequest[] {
+  return loadAll(schoolId);
+}
+
+/** Alias for backward compatibility. */
+export const getAllRequests = getAllRequestsForSchool;
+
+/** Requests submitted by a specific teacher. */
+export function getRequestsByTeacher(
   schoolId: string,
   teacherUserId: string,
 ): TeacherAnnouncementRequest[] {
-  return loadRequests(schoolId).filter((r) => r.requestedByUserId === teacherUserId);
+  return loadAll(schoolId).filter((r) => r.requestedByUserId === teacherUserId);
 }
 
-/** Pending requests count for a school (admin badge). */
+/** Alias for backward compatibility. */
+export const getTeacherRequests = getRequestsByTeacher;
+
+/** Only pending requests for a school — used by admin badge / dashboard widget. */
+export function getPendingRequestsForSchool(
+  schoolId: string,
+): TeacherAnnouncementRequest[] {
+  return loadAll(schoolId).filter((r) => r.status === 'pending');
+}
+
+/** Pending count — used by dashboard badge. */
 export function getPendingCount(schoolId: string): number {
-  return loadRequests(schoolId).filter((r) => r.status === 'pending').length;
+  return getPendingRequestsForSchool(schoolId).length;
 }
 
-/** Save (create or update) a request. */
+/** Look up a single request by ID. Returns undefined if not found. */
+export function getRequestById(
+  schoolId: string,
+  requestId: string,
+): TeacherAnnouncementRequest | undefined {
+  return loadAll(schoolId).find((r) => r.id === requestId);
+}
+
+/**
+ * Returns all requests enriched with `requestedBy` alias.
+ * Used by admin screens that reference req.requestedBy.
+ */
+export function getTeacherAnnouncementRequests(
+  schoolId: string,
+): TeacherAnnouncementRequest[] {
+  return loadAll(schoolId).map((r) => ({ ...r, requestedBy: r.requestedByName }));
+}
+
+// ─── Write helpers ────────────────────────────────────────────────────────────
+
+/**
+ * Create or update a request.
+ * Validates required fields before persisting.
+ */
 export function saveRequest(request: TeacherAnnouncementRequest): void {
-  const all = loadRequests(request.schoolId);
+  if (!request.schoolId || !request.requestedByUserId || !request.requestedByName) {
+    throw new Error('saveRequest: schoolId, requestedByUserId and requestedByName are required');
+  }
+  if (!request.title?.trim() || !request.content?.trim()) {
+    throw new Error('saveRequest: title and content are required');
+  }
+  if (!request.status) {
+    throw new Error('saveRequest: status is required');
+  }
+
+  const all = loadAll(request.schoolId);
   const idx = all.findIndex((r) => r.id === request.id);
   const updated =
     idx >= 0
       ? all.map((r, i) => (i === idx ? request : r))
       : [...all, request];
-  saveAll(request.schoolId, updated);
+  persistAll(request.schoolId, updated);
 }
 
 /** Delete a request by ID. */
 export function deleteRequest(schoolId: string, requestId: string): void {
-  const updated = loadRequests(schoolId).filter((r) => r.id !== requestId);
-  saveAll(schoolId, updated);
+  const updated = loadAll(schoolId).filter((r) => r.id !== requestId);
+  persistAll(schoolId, updated);
 }
 
-/** Alias for getAllRequests — used by admin announcement screen. */
-export function getTeacherAnnouncementRequests(schoolId: string): TeacherAnnouncementRequest[] {
-  return loadRequests(schoolId).map((r) => ({ ...r, requestedBy: r.requestedByName }));
-}
+// ─── Status transitions ───────────────────────────────────────────────────────
 
-/** Approve a request and link the created announcement ID. */
-export function approveRequest(requestId: string, schoolId: string, announcementId: string): void {
-  const all = loadRequests(schoolId);
+/**
+ * Step 1 of 2 — mark request as approved (no announcement created yet).
+ * The admin must then call publishApprovedRequest to create the announcement.
+ */
+export function approveRequest(
+  requestId: string,
+  schoolId: string,
+  approvedByUserId: string,
+): void {
+  const all = loadAll(schoolId);
+  const req = all.find((r) => r.id === requestId);
+  if (!req) throw new Error(`approveRequest: request ${requestId} not found`);
+  if (req.status !== 'pending') {
+    throw new Error(`approveRequest: expected status 'pending', got '${req.status}'`);
+  }
   const updated = all.map((r) =>
     r.id === requestId
-      ? { ...r, status: 'approved' as const, approvedAnnouncementId: announcementId, updatedAt: new Date().toISOString() }
+      ? {
+          ...r,
+          status: 'approved' as AnnouncementRequestStatus,
+          approvedAt: new Date().toISOString(),
+          approvedByUserId,
+          updatedAt: new Date().toISOString(),
+        }
       : r,
   );
-  saveAll(schoolId, updated);
+  persistAll(schoolId, updated);
 }
 
-/** Reject a request with an optional admin note. */
-export function rejectRequest(requestId: string, schoolId: string, adminNote?: string): void {
-  const all = loadRequests(schoolId);
+/**
+ * Step 2 of 2 — mark request as published and store the created announcement ID.
+ * Call this AFTER saveAnnouncement() succeeds.
+ */
+export function publishApprovedRequest(
+  requestId: string,
+  schoolId: string,
+  announcementId: string,
+  publishedByUserId: string,
+): void {
+  const all = loadAll(schoolId);
+  const req = all.find((r) => r.id === requestId);
+  if (!req) throw new Error(`publishApprovedRequest: request ${requestId} not found`);
+  if (req.status !== 'approved') {
+    throw new Error(`publishApprovedRequest: expected status 'approved', got '${req.status}'`);
+  }
+  const now = new Date().toISOString();
   const updated = all.map((r) =>
     r.id === requestId
-      ? { ...r, status: 'rejected' as const, adminNote, updatedAt: new Date().toISOString() }
+      ? {
+          ...r,
+          status: 'published' as AnnouncementRequestStatus,
+          publishedAt: now,
+          publishedByUserId,
+          publishedAnnouncementId: announcementId,
+          // Legacy alias for backward compat
+          approvedAnnouncementId: announcementId,
+          updatedAt: now,
+        }
       : r,
   );
-  saveAll(schoolId, updated);
+  persistAll(schoolId, updated);
+}
+
+/** Reject a request with an optional note. */
+export function rejectRequest(
+  requestId: string,
+  schoolId: string,
+  adminNote?: string,
+): void {
+  const all = loadAll(schoolId);
+  const req = all.find((r) => r.id === requestId);
+  if (!req) throw new Error(`rejectRequest: request ${requestId} not found`);
+  const updated = all.map((r) =>
+    r.id === requestId
+      ? {
+          ...r,
+          status: 'rejected' as AnnouncementRequestStatus,
+          adminNote,
+          rejectionReason: adminNote,
+          updatedAt: new Date().toISOString(),
+        }
+      : r,
+  );
+  persistAll(schoolId, updated);
 }

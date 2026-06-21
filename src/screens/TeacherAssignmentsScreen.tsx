@@ -14,7 +14,7 @@ import {
   canTeacherCreateInClass,
 } from '../utils/teacherPermissions';
 
-interface Props { activeUser: User; onBack: () => void; onLogout: () => void; }
+interface Props { activeUser: User; onBack: () => void; onLogout: () => void; initialFilter?: string; }
 
 interface FormState {
   id: string; classId: string; subject: string; title: string;

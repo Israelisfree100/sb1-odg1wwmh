@@ -17,9 +17,25 @@ import { getPracticeHistory } from '../services/practiceHistoryRepository';
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function StatChip({ icon, label, value, color }: { icon: React.ReactNode; label: string; value: string | number; color: string }) {
-  return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex items-center gap-3">
+function StatChip({
+  icon, label, value, color, onClick,
+}: {
+  icon: React.ReactNode; label: string; value: string | number; color: string; onClick?: () => void;
+}) {
+  const base = 'bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex items-center gap-3 w-full text-right';
+  const interactive = onClick
+    ? 'hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400'
+    : '';
+  return onClick ? (
+    <button type="button" onClick={onClick} className={`${base} ${interactive}`}>
+      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${color}`}>{icon}</div>
+      <div className="flex-1 min-w-0">
+        <p className="text-xl font-extrabold text-gray-800 leading-none">{value}</p>
+        <p className="text-xs text-gray-500 mt-0.5">{label}</p>
+      </div>
+    </button>
+  ) : (
+    <div className={base}>
       <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${color}`}>{icon}</div>
       <div>
         <p className="text-xl font-extrabold text-gray-800 leading-none">{value}</p>
@@ -263,12 +279,28 @@ export function ParentDashboard({ activeUser, onNavigate, onLogout }: ParentDash
                   </div>
                 </div>
 
-                {/* Stats row */}
+                {/* Stats row — clickable */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  <StatChip icon={<Calendar className="w-5 h-5 text-sky-600" />} label="שיעורים היום" value={snapshot.todayLessons.length} color="bg-sky-100" />
-                  <StatChip icon={<ClipboardList className="w-5 h-5 text-rose-600" />} label="משימות שנותרו" value={remainingAssignments} color="bg-rose-100" />
-                  <StatChip icon={<FileText className="w-5 h-5 text-violet-600" />} label="מבחן הבא" value={snapshot.nextExam?.dateLabel ?? 'אין'} color="bg-violet-100" />
-                  <StatChip icon={<MessageSquare className="w-5 h-5 text-amber-600" />} label="הודעות כיתה" value={classMessages.length} color="bg-amber-100" />
+                  <StatChip
+                    icon={<Calendar className="w-5 h-5 text-sky-600" />}
+                    label="שיעורים היום" value={snapshot.todayLessons.length} color="bg-sky-100"
+                    onClick={() => onNavigate({ id: 'parent-child-timetable' })}
+                  />
+                  <StatChip
+                    icon={<ClipboardList className="w-5 h-5 text-rose-600" />}
+                    label="משימות שנותרו" value={remainingAssignments} color="bg-rose-100"
+                    onClick={() => onNavigate({ id: 'parent-child-assignments', initialFilter: 'incomplete' })}
+                  />
+                  <StatChip
+                    icon={<FileText className="w-5 h-5 text-violet-600" />}
+                    label="מבחן הבא" value={snapshot.nextExam?.dateLabel ?? 'אין'} color="bg-violet-100"
+                    onClick={() => onNavigate({ id: 'parent-child-exams' })}
+                  />
+                  <StatChip
+                    icon={<MessageSquare className="w-5 h-5 text-amber-600" />}
+                    label="הודעות כיתה" value={classMessages.length} color="bg-amber-100"
+                    onClick={() => onNavigate({ id: 'parent-class-messages' })}
+                  />
                 </div>
 
                 {/* ─── מה חשוב לדעת עכשיו ──────────────────────────────── */}
@@ -321,9 +353,13 @@ export function ParentDashboard({ activeUser, onNavigate, onLogout }: ParentDash
                   </section>
                 )}
 
-                {/* Progress bar */}
+                {/* Progress bar — clickable */}
                 {snapshot.assignments.length > 0 && (
-                  <section className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                  <button
+                    type="button"
+                    onClick={() => onNavigate({ id: 'parent-child-assignments' })}
+                    className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 w-full text-right hover:shadow-md transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
+                  >
                     <div className="flex items-center gap-2 mb-3">
                       <TrendingUp className="w-5 h-5 text-emerald-600" />
                       <h2 className="text-base font-bold text-gray-800">התקדמות במשימות</h2>
@@ -338,12 +374,16 @@ export function ParentDashboard({ activeUser, onNavigate, onLogout }: ParentDash
                     {overdueCount > 0 && (
                       <p className="text-xs text-rose-600 mt-2 font-semibold">⚠️ {overdueCount} משימות באיחור</p>
                     )}
-                  </section>
+                  </button>
                 )}
 
-                {/* Latest practice score */}
+                {/* Latest practice score — clickable */}
                 {latestPractice && (
-                  <section className="bg-white rounded-2xl border border-emerald-100 shadow-sm p-5">
+                  <button
+                    type="button"
+                    onClick={() => onNavigate({ id: 'parent-practice-progress' })}
+                    className="bg-white rounded-2xl border border-emerald-100 shadow-sm p-5 w-full text-right hover:shadow-md transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
+                  >
                     <div className="flex items-center gap-2 mb-3">
                       <TrendingUp className="w-5 h-5 text-emerald-600" />
                       <h2 className="text-base font-bold text-gray-800">תוצאת תרגול אחרונה</h2>
@@ -358,7 +398,7 @@ export function ParentDashboard({ activeUser, onNavigate, onLogout }: ParentDash
                       </div>
                     </div>
                     <p className="text-xs text-gray-400 mt-2">הנתונים לא מהווים ציון בית-ספרי</p>
-                  </section>
+                  </button>
                 )}
 
                 {/* Navigation cards — all functional */}

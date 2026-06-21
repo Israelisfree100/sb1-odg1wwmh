@@ -32,16 +32,34 @@ interface Props {
 
 // ─── Stat widget ─────────────────────────────────────────────────────────────
 
+import { ChevronLeft } from 'lucide-react';
+
 interface StatProps {
   label: string;
   value: number | string;
   icon: React.ReactNode;
   colour: string;
+  onClick?: () => void;
 }
 
-function StatCard({ label, value, icon, colour }: StatProps) {
-  return (
-    <div className={`bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center gap-4`}>
+function StatCard({ label, value, icon, colour, onClick }: StatProps) {
+  const base = 'bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center gap-4 w-full text-right';
+  const interactive = onClick
+    ? 'hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400'
+    : '';
+  return onClick ? (
+    <button type="button" onClick={onClick} className={`${base} ${interactive}`}>
+      <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${colour}`}>
+        {icon}
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="text-2xl font-bold text-gray-800 leading-none">{value}</p>
+        <p className="text-xs text-gray-500 mt-0.5 leading-snug">{label}</p>
+      </div>
+      <ChevronLeft className="w-3.5 h-3.5 text-gray-300 shrink-0" />
+    </button>
+  ) : (
+    <div className={base}>
       <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${colour}`}>
         {icon}
       </div>
@@ -190,21 +208,29 @@ export function AdminDashboard({ activeUser, onNavigate, onLogout }: Props) {
         {/* ── Stat widgets ── */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
           <StatCard label="הודעות פעילות" value={publishedCount}
-            icon={<Megaphone className="w-5 h-5 text-violet-600" />} colour="bg-violet-50" />
+            icon={<Megaphone className="w-5 h-5 text-violet-600" />} colour="bg-violet-50"
+            onClick={() => onNavigate({ id: 'admin-announcements' })} />
           <StatCard label="משימות פעילות" value={activeAssignments}
-            icon={<ClipboardList className="w-5 h-5 text-sky-600" />} colour="bg-sky-50" />
+            icon={<ClipboardList className="w-5 h-5 text-sky-600" />} colour="bg-sky-50"
+            onClick={() => onNavigate({ id: 'admin-assignments' })} />
           <StatCard label="משימות דחופות" value={urgentAssignments}
-            icon={<AlertTriangle className="w-5 h-5 text-rose-600" />} colour="bg-rose-50" />
+            icon={<AlertTriangle className="w-5 h-5 text-rose-600" />} colour="bg-rose-50"
+            onClick={() => onNavigate({ id: 'admin-assignments', initialFilter: 'urgent' })} />
           <StatCard label="שיעורים במערכת" value={timetableCount}
-            icon={<CalendarClock className="w-5 h-5 text-indigo-600" />} colour="bg-indigo-50" />
+            icon={<CalendarClock className="w-5 h-5 text-indigo-600" />} colour="bg-indigo-50"
+            onClick={() => onNavigate({ id: 'admin-timetable' })} />
           <StatCard label="אבדות פתוחות" value={openLFCount}
-            icon={<Package className="w-5 h-5 text-amber-600" />} colour="bg-amber-50" />
+            icon={<Package className="w-5 h-5 text-amber-600" />} colour="bg-amber-50"
+            onClick={() => onNavigate({ id: 'admin-lost-found', initialFilter: 'open' })} />
           <StatCard label="מבחנים קרובים" value={examCount}
-            icon={<GraduationCap className="w-5 h-5 text-blue-600" />} colour="bg-blue-50" />
+            icon={<GraduationCap className="w-5 h-5 text-blue-600" />} colour="bg-blue-50"
+            onClick={() => onNavigate({ id: 'admin-exams' })} />
           <StatCard label="כיתות" value={classCount}
-            icon={<Layers className="w-5 h-5 text-emerald-600" />} colour="bg-emerald-50" />
+            icon={<Layers className="w-5 h-5 text-emerald-600" />} colour="bg-emerald-50"
+            onClick={() => onNavigate({ id: 'admin-users-classes', initialTab: 'classes' })} />
           <StatCard label="תלמידים פעילים" value={studentCount}
-            icon={<Users className="w-5 h-5 text-amber-600" />} colour="bg-amber-50" />
+            icon={<Users className="w-5 h-5 text-amber-600" />} colour="bg-amber-50"
+            onClick={() => onNavigate({ id: 'admin-users-classes', initialTab: 'students' })} />
         </div>
 
         {/* ── Management cards ── */}
@@ -272,13 +298,15 @@ export function AdminDashboard({ activeUser, onNavigate, onLogout }: Props) {
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
-              { label: 'תלמידים', value: studentCount, color: 'text-amber-700', bg: 'bg-amber-50' },
-              { label: 'מורים', value: teacherCount, color: 'text-emerald-700', bg: 'bg-emerald-50' },
-              { label: 'הורים', value: parentCount, color: 'text-violet-700', bg: 'bg-violet-50' },
-              { label: 'כיתות', value: classCount, color: 'text-indigo-700', bg: 'bg-indigo-50' },
+              { label: 'תלמידים', value: studentCount, color: 'text-amber-700', bg: 'bg-amber-50', tab: 'students' },
+              { label: 'מורים', value: teacherCount, color: 'text-emerald-700', bg: 'bg-emerald-50', tab: 'teachers' },
+              { label: 'הורים', value: parentCount, color: 'text-violet-700', bg: 'bg-violet-50', tab: 'parents' },
+              { label: 'כיתות', value: classCount, color: 'text-indigo-700', bg: 'bg-indigo-50', tab: 'classes' },
             ].map((s) => (
-              <button key={s.label} onClick={() => onNavigate({ id: 'admin-users-classes' })}
-                className={`rounded-xl border border-gray-100 p-3 text-center hover:shadow-md transition-all ${s.bg}`}>
+              <button key={s.label}
+                onClick={() => onNavigate({ id: 'admin-users-classes', initialTab: s.tab })}
+                className={`rounded-xl border border-gray-100 p-3 text-center hover:shadow-md transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 cursor-pointer ${s.bg}`}
+                aria-label={`פתח רשימת ${s.label}`}>
                 <p className={`text-xl font-extrabold ${s.color}`}>{s.value}</p>
                 <p className="text-xs text-gray-500 mt-0.5">{s.label}</p>
               </button>

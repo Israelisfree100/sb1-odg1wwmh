@@ -170,6 +170,7 @@ function App() {
           activeUser={activeUser}
           onBack={goAdminHome}
           onLogout={handleLogout}
+          initialFilter={screen.initialFilter}
         />
       );
 
@@ -183,6 +184,7 @@ function App() {
           onBack={goAdminHome}
           onNavigate={navigate}
           onLogout={handleLogout}
+          initialTab={screen.initialTab}
         />
       );
 
@@ -194,6 +196,7 @@ function App() {
           onBack={goAdminHome}
           onNavigate={navigate}
           onLogout={handleLogout}
+          initialFilter={screen.initialFilter}
         />
       );
 
@@ -216,6 +219,7 @@ function App() {
           onBack={goAdminHome}
           onNavigate={navigate}
           onLogout={handleLogout}
+          initialFilter={screen.initialFilter}
         />
       );
 
@@ -270,6 +274,7 @@ function App() {
           activeUser={activeUser}
           onBack={() => setScreen({ id: 'teacher-dashboard' })}
           onLogout={handleLogout}
+          initialFilter={screen.initialFilter}
         />
       );
 
@@ -306,6 +311,7 @@ function App() {
           activeUser={activeUser}
           onBack={() => setScreen({ id: 'teacher-dashboard' })}
           onLogout={handleLogout}
+          initialFilter={screen.initialFilter}
         />
       );
 
@@ -357,6 +363,7 @@ function App() {
           onBack={() => navigate({ id: 'parent-dashboard' })}
           onNavigate={navigate}
           onLogout={handleLogout}
+          initialFilter={screen.initialFilter}
         />
       );
 
