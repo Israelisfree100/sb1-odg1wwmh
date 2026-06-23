@@ -79,9 +79,9 @@ function ExamInfoCard({ exam }: { exam: Exam }) {
           </p>
           <h2 className="text-xl font-extrabold text-gray-800 leading-tight">
             {exam.subject}{' '}
-            {exam.subject === 'חשבון'
+            {exam.subject === 'חשבון' || exam.subject === 'מתמטיקה'
               ? '📐'
-              : exam.subject === 'עברית'
+              : exam.subject === 'עברית' || exam.subject === 'שפה'
                 ? '📚'
                 : exam.subject === 'מדעים'
                   ? '🔬'

@@ -15,7 +15,7 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 import type { User, AppScreen } from '../types';
-import { getSchool, getMergedLostFoundItems } from '../utils/dataHelpers';
+import { getSchool, getMergedLostFoundItems, getClass } from '../utils/dataHelpers';
 import { getAllAnnouncementsForAdmin } from '../services/announcementRepository';
 import { getAllExamsForAdmin } from '../services/examRepository';
 import { getAllAssignmentsForSchool } from '../services/assignmentRepository';
@@ -23,6 +23,7 @@ import { getPendingCount } from '../services/teacherAnnouncementRequestRepositor
 import { getActiveUserCount } from '../services/userRepository';
 import { getActiveClassCount } from '../services/classRepository';
 import { getTimetableEntryCount } from '../services/timetableRepository';
+import { isRagSchool, RAG_LEADERSHIP, RAG_HOMEROOM } from '../data/ragSchoolInfo';
 
 interface Props {
   activeUser: User;
@@ -142,6 +143,8 @@ export function AdminDashboard({ activeUser, onNavigate, onLogout }: Props) {
   const urgentAssignments = assignments.filter((a) => a.priority === 'high').length;
   const timetableCount = getTimetableEntryCount(schoolId);
   const pendingTeacherRequests = getPendingCount(schoolId);
+  const isRag = isRagSchool(schoolId);
+  const ragMainClass = isRag ? getClass('class-rag-g3') : undefined;
 
   return (
     <div dir="rtl" className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50">
@@ -182,6 +185,22 @@ export function AdminDashboard({ activeUser, onNavigate, onLogout }: Props) {
             <h1 className="text-xl font-bold text-gray-900">מערכת ניהול בית הספר</h1>
           </div>
           <p className="text-sm text-gray-500">{school?.fullName ?? school?.name}</p>
+          {isRag && (
+            <div className="mt-3 bg-sky-50 border border-sky-100 rounded-xl px-4 py-3 text-sm space-y-1">
+              <p className="font-bold text-sky-900">{school?.name}</p>
+              <p className="text-gray-700">
+                <span className="font-semibold">מנהל:</span> {RAG_LEADERSHIP.principal}
+              </p>
+              <p className="text-gray-700">
+                <span className="font-semibold">עוזרת מנהל:</span> {RAG_LEADERSHIP.assistantPrincipal}
+              </p>
+              <p className="text-gray-600 text-xs pt-1 border-t border-sky-100 mt-2">
+                כיתת דמו: {ragMainClass?.name ?? RAG_HOMEROOM.className}
+                {' · '}
+                מחנכת: {ragMainClass?.teacherName ?? RAG_HOMEROOM.teacherName}
+              </p>
+            </div>
+          )}
         </div>
 
         {/* ── Teacher requests banner ── */}

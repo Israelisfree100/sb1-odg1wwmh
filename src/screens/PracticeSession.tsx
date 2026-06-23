@@ -19,12 +19,13 @@ import {
   getQuestionsForTopic,
 } from '../data/questions';
 import { savePracticeEntry, generateHistoryId } from '../services/practiceHistoryRepository';
+import { isMathSubject } from '../utils/subjectHelpers';
 
 // ─── types ────────────────────────────────────────────────────────────────────
 
 interface PracticeSessionProps {
   mode: PracticeMode;
-  /** Exam subject — if provided and not 'חשבון', shows a coming-soon screen. */
+  /** Exam subject — if provided and not a math subject, shows a coming-soon screen. */
   subject?: string;
   onBack: () => void;
   /** When provided, a safe practice summary is saved to practice_history_<studentUserId> on completion. */
@@ -158,7 +159,7 @@ export function PracticeSession({ mode, subject, onBack, studentUserId }: Practi
   const currentQuestion = questions[currentIndex];
 
   // Non-math subject → coming-soon screen (after all hooks)
-  if (subject && subject !== 'חשבון') {
+  if (subject && !isMathSubject(subject)) {
     return (
       <PageShell
         headerLeft={

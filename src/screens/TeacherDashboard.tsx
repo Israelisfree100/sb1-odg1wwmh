@@ -26,6 +26,8 @@ import {
 import { getPendingCount } from '../services/teacherAnnouncementRequestRepository';
 import { getAllAssignmentsForSchool } from '../services/assignmentRepository';
 import { getAllMessagesForSchool } from '../services/classMessageRepository';
+import { isRagSchool } from '../data/ragSchoolInfo';
+import { getSchoolTheme } from '../utils/schoolThemes';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -149,11 +151,16 @@ export function TeacherDashboard({ activeUser, onNavigate, onLogout }: TeacherDa
   );
 
   const initials = getInitials(activeUser.fullName);
+  const isRag = isRagSchool(activeUser.schoolId);
+  const theme = getSchoolTheme(activeUser.schoolId);
+  const homeroomClass = activeUser.homeroomClassId
+    ? getClass(activeUser.homeroomClassId)
+    : undefined;
 
   return (
     <div
       dir="rtl"
-      className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-sky-50 font-sans"
+      className={`min-h-screen bg-gradient-to-br ${isRag ? 'from-emerald-50 via-teal-50 to-sky-50' : 'from-emerald-50 via-teal-50 to-sky-50'} font-sans`}
     >
       {/* ── Top bar ──────────────────────────────────────────────────────────── */}
       <header className="bg-white border-b border-gray-100 shadow-sm sticky top-0 z-10">
@@ -168,6 +175,11 @@ export function TeacherDashboard({ activeUser, onNavigate, onLogout }: TeacherDa
               <span className="inline-block bg-emerald-100 text-emerald-700 text-xs font-bold px-2 py-0.5 rounded-full">
                 מורה
               </span>
+              {isRag && theme.badge && (
+                <span className={`inline-block mr-1.5 ${theme.badgeBg} ${theme.badgeText} text-xs font-bold px-2 py-0.5 rounded-full`}>
+                  {theme.badge}
+                </span>
+              )}
             </div>
           </div>
 
@@ -197,9 +209,15 @@ export function TeacherDashboard({ activeUser, onNavigate, onLogout }: TeacherDa
         {/* Greeting */}
         <div>
           <h1 className="text-2xl font-extrabold text-gray-800">
-            שלום {activeUser.firstName}! 👋
+            שלום {activeUser.fullName}! 👋
           </h1>
-          <p className="text-gray-500 mt-1">הנה תמונת המצב שלך להיום</p>
+          {isRag && homeroomClass ? (
+            <p className="text-gray-600 mt-1 font-medium">
+              מחנכת כיתה {homeroomClass.name}
+            </p>
+          ) : (
+            <p className="text-gray-500 mt-1">הנה תמונת המצב שלך להיום</p>
+          )}
           {(teacherClasses.length > 0 || subjects.length > 0) && (
             <div className="flex flex-wrap gap-2 mt-3">
               {teacherClasses.map((cls) => (

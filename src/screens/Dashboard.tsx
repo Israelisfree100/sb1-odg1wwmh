@@ -29,6 +29,8 @@ import {
   getClassMessages,
   getReadMessageIds,
 } from '../utils/dataHelpers';
+import { getSchoolTheme } from '../utils/schoolThemes';
+import { isRagSchool, RAG_HOMEROOM, RAG_STAFF_ROSTER } from '../data/ragSchoolInfo';
 
 interface DashboardProps {
   activeUser: User;
@@ -40,6 +42,8 @@ export function Dashboard({ activeUser, onNavigate, onLogout }: DashboardProps) 
   const school = getSchool(activeUser.schoolId);
   const cls = activeUser.classId ? getClass(activeUser.classId) : undefined;
   const initials = getInitials(activeUser.fullName);
+  const theme = getSchoolTheme(activeUser.schoolId);
+  const isRag = isRagSchool(activeUser.schoolId);
 
   // ── Assignments summary ────────────────────────────────────────────────────
   const allAssignments = activeUser.classId
@@ -218,15 +222,19 @@ export function Dashboard({ activeUser, onNavigate, onLogout }: DashboardProps) 
   return (
     <div
       dir="rtl"
-      className="min-h-screen bg-gradient-to-br from-violet-50 via-sky-50 to-emerald-50 font-sans"
+      className={`min-h-screen bg-gradient-to-br ${theme.pageGradient} font-sans`}
     >
       {/* ── Top bar ──────────────────────────────────────────────────────────── */}
       <header className="bg-white/80 backdrop-blur-md border-b border-white shadow-sm sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
           {/* Start (right in RTL): brand + school */}
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-sky-500 flex items-center justify-center flex-shrink-0">
-              <span className="text-white text-sm font-bold">ח</span>
+            <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${theme.headerGradient} flex items-center justify-center flex-shrink-0`}>
+              {isRag ? (
+                <span className="text-white text-[9px] font-bold leading-tight text-center px-0.5">ר״א ג׳</span>
+              ) : (
+                <span className="text-white text-sm font-bold">ח</span>
+              )}
             </div>
             <div className="min-w-0 hidden sm:block">
               <p className="font-bold text-gray-800 text-sm leading-tight truncate">
@@ -238,6 +246,11 @@ export function Dashboard({ activeUser, onNavigate, onLogout }: DashboardProps) 
                 </p>
               )}
             </div>
+            {isRag && theme.badge && (
+              <span className={`hidden md:inline-flex text-xs font-bold ${theme.badgeBg} ${theme.badgeText} px-2.5 py-1 rounded-full shrink-0`}>
+                {theme.badge}
+              </span>
+            )}
           </div>
 
           {/* End (left in RTL): user info + logout */}
@@ -299,15 +312,47 @@ export function Dashboard({ activeUser, onNavigate, onLogout }: DashboardProps) 
               <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-800 leading-tight">
                 בוקר טוב, {activeUser.firstName} 👋
               </h1>
-              <p className="text-base text-gray-500 mt-1.5 font-medium">
-                מה מחכה לך היום?
-                {school && (
-                  <span className="text-gray-400 text-sm mr-2">
-                    · {school.name}
-                  </span>
-                )}
-              </p>
+              {isRag ? (
+                <div className="mt-2 space-y-1">
+                  <p className="text-base text-gray-600 font-medium">{school?.name}</p>
+                  <p className="text-sm text-gray-500">
+                    כיתה {cls?.name ?? RAG_HOMEROOM.className}
+                    <span className="mx-2 text-gray-300">·</span>
+                    המחנכת: {cls?.teacherName ?? RAG_HOMEROOM.teacherName}
+                  </p>
+                </div>
+              ) : (
+                <p className="text-base text-gray-500 mt-1.5 font-medium">
+                  מה מחכה לך היום?
+                  {school && (
+                    <span className="text-gray-400 text-sm mr-2">
+                      · {school.name}
+                    </span>
+                  )}
+                </p>
+              )}
             </section>
+
+            {/* RAG staff roster */}
+            {isRag && (
+              <section className="bg-white/70 backdrop-blur-sm rounded-2xl border border-sky-100 shadow-sm p-5">
+                <h2 className="text-sm font-bold text-sky-800 mb-3">צוות הכיתה</h2>
+                <p className="text-sm text-gray-700 mb-3">
+                  <span className="font-semibold text-gray-800">המחנכת שלי:</span>{' '}
+                  {RAG_HOMEROOM.teacherName}
+                </p>
+                <p className="text-xs font-semibold text-gray-500 mb-2">צוות מקצועי:</p>
+                <ul className="space-y-1.5 text-sm text-gray-600">
+                  {RAG_STAFF_ROSTER.map((s) => (
+                    <li key={s.name}>
+                      <span className="font-medium text-gray-800">{s.name}</span>
+                      {' — '}
+                      {s.subjects}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
 
             {/* Summary widgets */}
             <section>

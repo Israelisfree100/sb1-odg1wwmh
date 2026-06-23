@@ -18,7 +18,25 @@ export const CLASSES: ClassGroup[] = [
   { id: 'shaked-g2', schoolId: 'shaked', name: "ג'2", grade: "ג'", teacherName: 'רחל לוי' },
   { id: 'rakafot-g3', schoolId: 'rakafot', name: "ג'3", grade: "ג'", teacherName: 'מירי גרין' },
   { id: 'rakafot-g4', schoolId: 'rakafot', name: "ג'4", grade: "ג'", teacherName: 'אסתר כץ' },
-  { id: 'class-rag-g2', schoolId: 'ramat-aviv-g', name: "ג'2", grade: "ג'", teacherName: 'ענת לוי' },
+  {
+    id: 'class-rag-g3',
+    schoolId: 'ramat-aviv-g',
+    name: "ג'3",
+    grade: "ג'",
+    teacherName: 'דלית שלג',
+    homeroomTeacherId: 'teacher-rag',
+    schoolYear: 'תשפ"ו',
+    isActive: true,
+  },
+  /** Legacy — kept for localStorage migration only; inactive. */
+  {
+    id: 'class-rag-g2',
+    schoolId: 'ramat-aviv-g',
+    name: "ג'2",
+    grade: "ג'",
+    teacherName: 'דלית שלג',
+    isActive: false,
+  },
 ];
 
 export const USERS: User[] = [
@@ -58,21 +76,20 @@ export const USERS: User[] = [
     username: 'alma-rag',
     password: '1234',
     role: 'student',
-    fullName: 'עלמה כהן',
-    firstName: 'עלמה',
-    classId: 'class-rag-g2',
+    fullName: 'אלמה קרפ',
+    firstName: 'אלמה',
+    classId: 'class-rag-g3',
     grade: "ג'",
   },
-  // Second RAG student — for multi-child parent demo
   {
     id: 'user-rag-noam',
     schoolId: 'ramat-aviv-g',
     username: 'noam-rag',
     password: '1234',
     role: 'student',
-    fullName: 'נועם כהן',
+    fullName: 'נועם גולדברג',
     firstName: 'נועם',
-    classId: 'class-rag-g2',
+    classId: 'class-rag-g3',
     grade: "ג'",
   },
 
@@ -101,8 +118,8 @@ export const USERS: User[] = [
     username: 'admin-rag',
     password: '1234',
     role: 'school_admin',
-    fullName: 'מנהל בית ספר רמת אביב ג׳',
-    firstName: 'מנהל',
+    fullName: 'יגאל',
+    firstName: 'יגאל',
   },
 
   // ── Teachers ──────────────────────────────────────────────────────────────
@@ -137,12 +154,12 @@ export const USERS: User[] = [
     username: 'teacher-rag',
     password: '1234',
     role: 'teacher',
-    fullName: 'ענת לוי',
-    firstName: 'ענת',
-    teacherId: 'tid-rag-anat',
-    classIds: ['class-rag-g2'],
-    subjects: ['עברית', 'כישורי חיים'],
-    homeroomClassId: 'class-rag-g2',
+    fullName: 'דלית שלג',
+    firstName: 'דלית',
+    teacherId: 'tid-rag-dalit',
+    classIds: ['class-rag-g3'],
+    subjects: ['מתמטיקה', 'חשבון', 'גאומטריה', 'כישורי חיים', 'תורה'],
+    homeroomClassId: 'class-rag-g3',
   },
 
   // ── Parents ───────────────────────────────────────────────────────────────
@@ -179,7 +196,6 @@ export const USERS: User[] = [
     parentId: 'pid-rag-dana',
     childUserIds: ['user-rag-alma'],
   },
-  // Multi-child parent for demo purposes
   {
     id: 'parent-multi-rag',
     schoolId: 'ramat-aviv-g',

@@ -96,7 +96,7 @@ export function getTeacherSubjects(user: User): string[] {
 
 function todayDayOfWeek(): number {
   const raw = new Date().getDay();
-  return raw >= 5 ? 0 : raw;
+  return raw === 6 ? 0 : raw;
 }
 
 /**

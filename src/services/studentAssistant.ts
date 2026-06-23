@@ -6,6 +6,7 @@
 import type { User, TimetableEntry } from '../types';
 import {
   getTodayTimetable,
+  getTomorrowTimetable,
   getNextLesson,
   getDailyInfo,
   getAssignments,
@@ -15,7 +16,11 @@ import {
   getClassMessages,
   getMergedLostFoundItems,
   getSubjectRoom,
+  getSchoolDayStart,
+  getClass,
 } from '../utils/dataHelpers';
+import { isRagSchool, RAG_SUBJECT_TEACHERS } from '../data/ragSchoolInfo';
+import { TIMETABLE_ENTRIES } from '../data/mockData';
 
 // ─── Internal helpers ─────────────────────────────────────────────────────────
 
@@ -26,7 +31,19 @@ function contains(q: string, ...words: string[]): boolean {
 function fmtLesson(l: TimetableEntry): string {
   if (l.isBreak) return `${l.startTime}–${l.endTime}  ${l.subject}`;
   const room = l.room ? ` | ${l.room}` : '';
-  return `${l.startTime}–${l.endTime}  ${l.subject} (${l.teacherName})${room}`;
+  const teacher = l.teacherName ? ` (${l.teacherName})` : '';
+  return `${l.startTime}–${l.endTime}  ${l.subject}${teacher}${room}`;
+}
+
+function lookupSubjectTeacher(user: User, subject: string): string | undefined {
+  if (isRagSchool(user.schoolId) && RAG_SUBJECT_TEACHERS[subject]) {
+    return RAG_SUBJECT_TEACHERS[subject];
+  }
+  const classId = user.classId ?? '';
+  const entry = TIMETABLE_ENTRIES.find(
+    (e) => e.classId === classId && e.subject === subject && !e.isBreak && e.teacherName,
+  );
+  return entry?.teacherName;
 }
 
 // ─── Answer generators ────────────────────────────────────────────────────────
@@ -38,6 +55,21 @@ function answerToday(user: User): string {
     return 'לא נמצאו שיעורים להיום. אולי זה יום חופש? 😎';
   const list = lessons.map((l) => `• ${fmtLesson(l)}`).join('\n');
   return `השיעורים שלך היום (${lessons.length} סה"כ):\n${list}`;
+}
+
+function answerTomorrow(user: User): string {
+  const all = getTomorrowTimetable(user.classId ?? '');
+  const lessons = all.filter((l) => !l.isBreak);
+  if (lessons.length === 0)
+    return 'לא נמצאו שיעורים למחר.';
+  const list = lessons.map((l) => `• ${fmtLesson(l)}`).join('\n');
+  return `השיעורים שלך מחר (${lessons.length} סה"כ):\n${list}`;
+}
+
+function answerSchoolStart(user: User): string {
+  const start = getSchoolDayStart(user.classId ?? '');
+  if (!start) return 'לא נמצאה שעת התחלה ליום הלימודים.';
+  return `יום הלימודים מתחיל בשעה ${start}. 🌅`;
 }
 
 function answerBreak(user: User, big: boolean): string {
@@ -72,9 +104,27 @@ function answerFirstLesson(user: User): string {
   return `השיעור הראשון היום הוא ${first.subject} בשעה ${first.startTime}${first.teacherName ? ` עם ${first.teacherName}` : ''}${first.room ? ` ב${first.room}` : ''}.`;
 }
 
+function answerHomeroomTeacher(user: User): string {
+  const cls = user.classId ? getClass(user.classId) : undefined;
+  if (cls?.teacherName) return `המחנכת שלך היא ${cls.teacherName}. 👩‍🏫`;
+  return 'לא נמצאה מחנכת לכיתה שלך.';
+}
+
+function answerSubjectTeacher(user: User, subject: string, label: string): string {
+  const teacher = lookupSubjectTeacher(user, subject);
+  if (teacher) return `${label} מלמד/ת ${subject}: ${teacher}.`;
+  return `לא נמצא מורה ל${subject} במערכת.`;
+}
+
 function answerSubjectLocation(user: User, subject: string): string {
-  const room = getSubjectRoom(user.classId ?? '', subject);
-  if (room) return `שיעור ${subject} מתקיים ב${room}.`;
+  const aliases = subject === 'ספורט' ? ['ספורט', 'חינוך גופני'] : [subject];
+  for (const sub of aliases) {
+    const room = getSubjectRoom(user.classId ?? '', sub);
+    if (room) {
+      const display = subject === 'ספורט' ? 'חינוך גופני (ספורט)' : subject;
+      return `שיעור ${display} מתקיים ב${room}.`;
+    }
+  }
   return `שיעור ${subject} מתקיים בכיתה.`;
 }
 
@@ -175,6 +225,32 @@ export function askAssistant(user: User, question: string): string {
   const q = question.trim();
   const ql = q.toLowerCase();
 
+  // School day start
+  if (contains(ql, 'מתי מתחיל', 'מתחיל היום', 'שעת התחלה', 'מתי מתחילים')) {
+    return answerSchoolStart(user);
+  }
+
+  // Homeroom teacher
+  if (contains(ql, 'מי המחנכת', 'מי המחנך', 'מי המורה שלי', 'מי המחנכת שלי')) {
+    return answerHomeroomTeacher(user);
+  }
+
+  // Subject teachers
+  if (contains(ql, 'מי מלמד', 'מי מלמדת') && contains(ql, 'שפה')) {
+    return answerSubjectTeacher(user, 'שפה', '');
+  }
+  if (contains(ql, 'מי מלמד', 'מי מלמדת') && contains(ql, 'אנגלית')) {
+    return answerSubjectTeacher(user, 'אנגלית', '');
+  }
+  if (contains(ql, 'מי מלמד', 'מי מלמדת') && contains(ql, 'מדעים')) {
+    return answerSubjectTeacher(user, 'מדעים', '');
+  }
+
+  // Tomorrow's schedule
+  if (contains(ql, 'מה יש לי מחר', 'מה יש מחר', 'מחר יש', 'לוח מחר')) {
+    return answerTomorrow(user);
+  }
+
   // Big break
   if (contains(ql, 'הפסקה גדולה', 'הפסקת אוכל', 'ארוחת הביניים', 'הפסקת צהריים')) {
     return answerBreak(user, true);
@@ -187,7 +263,7 @@ export function askAssistant(user: User, question: string): string {
 
   // School end time
   if (
-    contains(ql, 'מתי נגמר', 'מתי מסתיים', 'מתי גומרים', 'נגמר יום', 'סוף יום', 'מסיים')
+    contains(ql, 'מתי נגמר', 'מתי נגמר היום', 'מתי מסתיים', 'מתי גומרים', 'נגמר יום', 'סוף יום', 'מסיים')
   ) {
     return answerSchoolEnd(user);
   }
@@ -201,7 +277,7 @@ export function askAssistant(user: User, question: string): string {
   if (contains(ql, 'ספורט') && contains(ql, 'איפה', 'היכן', 'מקום', 'כיתה', 'אולם')) {
     return answerSubjectLocation(user, 'ספורט');
   }
-  if (contains(ql, 'איפה ספורט', 'היכן ספורט')) {
+  if (contains(ql, 'איפה שיעור ספורט', 'איפה ספורט', 'היכן ספורט')) {
     return answerSubjectLocation(user, 'ספורט');
   }
 
@@ -221,7 +297,7 @@ export function askAssistant(user: User, question: string): string {
 
   // Next lesson
   if (
-    contains(ql, 'שיעור הבא', 'מה עכשיו', 'מה יש עכשיו', 'מה יש אחרי', 'מה הבא')
+    contains(ql, 'שיעור הבא', 'מה השיעור הבא', 'מה עכשיו', 'מה יש עכשיו', 'מה יש אחרי', 'מה הבא')
   ) {
     return answerNextLesson(user);
   }

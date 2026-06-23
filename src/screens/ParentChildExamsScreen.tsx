@@ -7,12 +7,11 @@ import {
   canParentAccessChild, getParentSelectedChildId, saveParentSelectedChildId, getSelectedChild,
 } from '../utils/parentHelpers';
 import { getExamsForClass } from '../services/examRepository';
+import { MATH_SUBJECTS } from '../utils/subjectHelpers';
 
 interface Props { activeUser: User; onBack: () => void; onNavigate: (s: AppScreen) => void; onLogout: () => void; }
 
 type ExamFilter = 'upcoming' | 'all' | string;
-
-const MATH_SUBJECTS = ['חשבון'];
 
 export function ParentChildExamsScreen({ activeUser, onBack, onLogout }: Props) {
   const [childId, setChildId] = useState(() => getParentSelectedChildId(activeUser));

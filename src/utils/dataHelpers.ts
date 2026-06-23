@@ -45,14 +45,34 @@ export function getInitials(fullName: string): string {
 
 /**
  * Returns today's timetable entries sorted by period.
- * Maps Friday (5) and Saturday (6) to Sunday (0) as fallback.
+ * Saturday (6) maps to Sunday (0) as fallback — no school on Shabbat.
  */
 export function getTodayTimetable(classId: string): TimetableEntry[] {
   const raw = new Date().getDay();
-  const day = raw >= 5 ? 0 : raw;
+  const day = raw === 6 ? 0 : raw;
   return TIMETABLE_ENTRIES.filter(
     (e) => e.classId === classId && e.dayOfWeek === day,
   ).sort((a, b) => a.period - b.period);
+}
+
+/** Returns tomorrow's timetable (handles week wrap). */
+export function getTomorrowTimetable(classId: string): TimetableEntry[] {
+  const raw = new Date().getDay();
+  const tomorrow = raw === 6 ? 0 : raw === 5 ? 6 : raw + 1; // Fri→Sat→Sun wrap
+  // If tomorrow is Saturday, show Sunday schedule
+  const day = tomorrow === 6 ? 0 : tomorrow;
+  return TIMETABLE_ENTRIES.filter(
+    (e) => e.classId === classId && e.dayOfWeek === day,
+  ).sort((a, b) => a.period - b.period);
+}
+
+/** First lesson start time for a class on a given day. */
+export function getSchoolDayStart(classId: string, day?: number): string | undefined {
+  const d = day ?? (new Date().getDay() === 6 ? 0 : new Date().getDay());
+  const lessons = TIMETABLE_ENTRIES.filter(
+    (e) => e.classId === classId && e.dayOfWeek === d && !e.isBreak,
+  ).sort((a, b) => a.period - b.period);
+  return lessons[0]?.startTime;
 }
 
 function toMinutes(time: string): number {

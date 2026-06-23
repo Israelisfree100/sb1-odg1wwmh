@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { SCHOOLS } from '../data/schools';
 import { login, saveSession } from '../utils/auth';
+import { resetRagDemoData } from '../utils/ragDemoBootstrap';
 import type { User, UserRole } from '../types';
 import { getRoleLoginTitle } from '../utils/roleHelpers';
 
@@ -301,6 +302,17 @@ export function LoginScreen({ selectedRole, onLogin, onBack }: LoginScreenProps)
                 </div>
               ))}
             </div>
+            <button
+              type="button"
+              onClick={() => {
+                if (window.confirm('לאפס את נתוני הדמו של רמת אביב ג׳ בלבד? פעולה זו תנקה שינויים מ-localStorage ותטען מחדש את נתוני הדמו.')) {
+                  resetRagDemoData();
+                }
+              }}
+              className="mt-3 w-full text-xs font-bold text-sky-800 bg-sky-100 hover:bg-sky-200 border border-sky-200 rounded-xl py-2 transition-colors"
+            >
+              איפוס נתוני הדמו של רמת אביב ג׳
+            </button>
           </div>
         )}
       </div>
